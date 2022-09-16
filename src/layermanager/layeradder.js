@@ -81,7 +81,7 @@ const LayerAdder = function LayerAdder(options = {}) {
       // currently WMS layers from a Geoserver and ArcGIS Server are supported
       const abstractText = (abstract === 'no description') ? '' : abstract;
       let srcUrl = src;
-      let legendJson = true;
+      let legendJson = false;
       let styleProperty;
       let theme = false;
       // assume ArcGIS WMS based on URL. 'OR' as webadaptors need not be called 'arcgis'
@@ -89,18 +89,15 @@ const LayerAdder = function LayerAdder(options = {}) {
         let jsonUrl = srcUrl.replace(/\/arcgis(\/rest)?\/services\/([^/]+\/[^/]+)\/MapServer\/WMSServer/, '/arcgis/rest/services/$2/MapServer');
         jsonUrl = `${jsonUrl}/legend?f=json`;
 
-        let jsonResponse;
-
         try {
           const response = await fetch(jsonUrl);
-          jsonResponse = await response.json();
-          legendJson = true;
-        } catch (e) {
-          console.warn(e);
-        }
-        const filteredLayersArray = jsonResponse.layers.filter(l => l.layerName === layerId);
-        if (filteredLayersArray[0].legend.length > 1) {
-          theme = true;
+          legendJson = await response.json();
+          const filteredLayersArray = legendJson.layers.filter(l => l.layerName === layerId);
+          if (filteredLayersArray[0].legend.length > 1) {
+            theme = true;
+          }
+        } catch (error) {
+          console.warn(error);
         }
         layersDefaultProps.infoFormat = 'application/geo+json';
       } else {
@@ -112,9 +109,9 @@ const LayerAdder = function LayerAdder(options = {}) {
         try {
           legendJson = await legendResult.json();
         } catch (error) {
-          console.info(error);
-          legendJson = undefined;
+          console.warn(error);
         }
+
         if (legendJson) {
           const value = legendJson.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
           if ((legendJson.Legend[0].rules.length > 1) || (legendJson.Legend.length > 1)) {
