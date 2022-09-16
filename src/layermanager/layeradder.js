@@ -115,7 +115,7 @@ const LayerAdder = function LayerAdder(options = {}) {
           console.info(error);
           legendJson = undefined;
         }
-        if (legendJson) { // kom ihåg optional chaining för nedanstående rad
+        if (legendJson) {
           const value = legendJson.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
           if ((legendJson.Legend[0].rules.length > 1) || (legendJson.Legend.length > 1)) {
             theme = true;
