@@ -10,6 +10,7 @@ const LayerList = function LayerList(options = {}) {
     url,
     viewer,
     noSearchResultText = 'No results..',
+    noLegendIcon = 'img/png/raster.png',
     layersDefaultProps
   } = options;
 
@@ -41,7 +42,8 @@ const LayerList = function LayerList(options = {}) {
         sourceUrl,
         url,
         viewer,
-        layersDefaultProps
+        layersDefaultProps,
+        noLegendIcon
       });
     });
   };

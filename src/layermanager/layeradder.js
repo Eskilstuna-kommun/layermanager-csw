@@ -13,7 +13,8 @@ const LayerAdder = function LayerAdder(options = {}) {
     src,
     viewer,
     abstract = '',
-    layersDefaultProps
+    layersDefaultProps,
+    noLegendIcon
   } = options;
 
   const layer = viewer.getLayer(layerId);
@@ -77,44 +78,84 @@ const LayerAdder = function LayerAdder(options = {}) {
     if (this.getState() === 'initial') {
       this.setState('loading');
       // add layers with same format as in config-json
+      // currently WMS layers from a Geoserver and ArcGIS Server are supported
+      const abstractText = (abstract === 'no description') ? '' : abstract;
       let srcUrl = src;
-      const abstractText = (abstract == 'no description') ? '' : abstract;
-      if (src[src.length - 1] == '?') srcUrl = src.substring(0, src.length - 1); // some extra '?' from request breaks the url
-      const legendurl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401`;
-      const legendIconUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401&legend_options=dpi:600`;
+      let legendJson = true;
+      let styleProperty;
       let theme = false;
-      fetch(legendurl)
-        .then((res) => res.json())
-        .then((json) => {
-		  const value = json.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
-          if ((json.Legend[0].rules.length > 1) || (json.Legend.length > 1)) {theme = true;}
-      else if (value) {theme = true;}
-      
-          let layer = {
-            name: layerId,
-            title,
-            removable: true,
-            source: srcUrl,
-            abstract: abstractText,
-            style: legendIconUrl,
-            theme
-          };
-          layer = Object.assign(layer, layersDefaultProps);
-          const srcObject = {};
-          srcObject[`${srcUrl}`] = { url: srcUrl };
-          addSources(srcObject);
-          const style = [[
-            {
-              icon: { src: legendIconUrl },
-              extendedLegend: theme
-            }]];
-          viewer.addStyle(legendIconUrl, style);
-          viewer.addLayer(layer);
-          this.setState('inactive');
-        }).catch((err) => {
-          let errormsg = viewer.getControlByName('layermanager').getErrorMsg();
-          swal("Något gick fel", errormsg, "warning");
-        });
+      // assume ArcGIS WMS based on URL. 'OR' as webadaptors need not be called 'arcgis'
+      if (srcUrl.includes('arcgis') || srcUrl.includes('WMSServer')) {
+        let jsonUrl = srcUrl.replace(/\/arcgis(\/rest)?\/services\/([^/]+\/[^/]+)\/MapServer\/WMSServer/, '/arcgis/rest/services/$2/MapServer');
+        jsonUrl = `${jsonUrl}/legend?f=json`;
+
+        let jsonResponse;
+
+        try {
+          const response = await fetch(jsonUrl);
+          jsonResponse = await response.json();
+          legendJson = true;
+        } catch (e) {
+          console.warn(e);
+        }
+        const filteredLayersArray = jsonResponse.layers.filter(l => l.layerName === layerId);
+        if (filteredLayersArray[0].legend.length > 1) {
+          theme = true;
+        }
+        layersDefaultProps.infoFormat = 'application/geo+json';
+      } else {
+      // not an ArcGIS Server WMS layer, assume Geoserver
+        if (src[src.length - 1] === '?') srcUrl = src.substring(0, src.length - 1); // some extra '?' from request breaks the url
+        const legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401`;
+        const legendResult = await fetch(legendUrl);
+
+        try {
+          legendJson = await legendResult.json();
+        } catch (error) {
+          console.info(error);
+          legendJson = undefined;
+        }
+        if (legendJson) { // kom ihåg optional chaining för nedanstående rad
+          const value = legendJson.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
+          if ((legendJson.Legend[0].rules.length > 1) || (legendJson.Legend.length > 1)) {
+            theme = true;
+          } else if (value) {
+            theme = true;
+          }
+        }
+      }
+
+      if (legendJson) {
+        styleProperty = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401`;
+      } else {
+        styleProperty = noLegendIcon;
+      }
+
+      let newLayer = {
+        name: layerId,
+        title,
+        removable: true,
+        source: srcUrl,
+        abstract: abstractText,
+        style: styleProperty,
+        theme
+      };
+
+      newLayer = Object.assign(newLayer, layersDefaultProps);
+      const srcObject = {};
+      srcObject[`${srcUrl}`] = { url: srcUrl };
+      addSources(srcObject);
+
+      if (styleProperty) {
+        const style = [[
+          {
+            icon: { src: styleProperty },
+            extendedLegend: theme
+          }]];
+        viewer.addStyle(styleProperty, style);
+      }
+      viewer.addLayer(newLayer);
+      this.setState('inactive');
     }
   };
 

@@ -9,7 +9,8 @@ const layerItem = function layerItem(options = {}) {
     sourceUrl,
     viewer,
     sourceFields,
-    layersDefaultProps
+    layersDefaultProps,
+    noLegendIcon
   } = options;
 
   const {
@@ -52,7 +53,8 @@ const layerItem = function layerItem(options = {}) {
         src: data[src.name],
         sourceUrl,
         abstract: data[description.name],
-        layersDefaultProps
+        layersDefaultProps,
+        noLegendIcon
       });
       this.addComponent(layerAdder);
     },

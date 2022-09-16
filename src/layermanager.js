@@ -20,6 +20,7 @@ const Layermanager = function Layermanager(options = {}) {
     group,
     layersDefaultProps,
     noSearchResultText,
+    noLegendIcon,
     types,
     addLayerErrorMsg
   } = options;
@@ -112,7 +113,8 @@ const Layermanager = function Layermanager(options = {}) {
         sourceUrl,
         url,
         layersDefaultProps,
-        noSearchResultText
+        noSearchResultText,
+        noLegendIcon
       });
       filterMenu = FilterMenu({types});
       this.addComponent(closeButton);
