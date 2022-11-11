@@ -23,6 +23,9 @@ module.exports = merge(common, {
           },            
           {
             loader: "css-loader"
+          },
+          {
+            loader: "sass-loader"
           }
         ]
       }      
@@ -31,7 +34,7 @@ module.exports = merge(common, {
  
   devServer: {
     static: './',
-    port: 9001,
+    port: 9008,
     devMiddleware: {
       //index: true,
       //mimeTypes: { 'text/html': ['phtml'] },
