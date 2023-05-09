@@ -12,6 +12,7 @@
         "error",
         "never"
       ],
+      "linebreak-style": ["error", "unix"],
       "import/no-unresolved": "off",
       "new-cap": "off",
       "prefer-destructuring": "off",
