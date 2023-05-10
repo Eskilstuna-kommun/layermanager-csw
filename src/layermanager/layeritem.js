@@ -1,4 +1,4 @@
-import 'Origo'
+import 'Origo';
 import LayerAdder from './layeradder';
 
 const layerItem = function layerItem(options = {}) {
@@ -23,30 +23,30 @@ const layerItem = function layerItem(options = {}) {
   const cls = `${clsOptions} item`.trim();
   const style = Origo.ui.dom.createStyle(styleOptions);
   let layerAdder;
-  
+
   const headerComponent = Origo.ui.CollapseHeader({
     title: `${data[title.name]}`,
-    cls: "text-black text-grey-dark text-normal text-weight-bold"
+    cls: 'text-black text-grey-dark text-normal text-weight-bold'
   });
   const contentComponent = Origo.ui.Element({
     tagName: 'p',
     innerHTML: `${data[description.name]}`,
-    cls: "text-grey text-smaller text-height-smaller",
-    style: {"word-break":"break-word"}
-  })
+    cls: 'text-grey text-smaller text-height-smaller',
+    style: { 'word-break': 'break-word' }
+  });
   const collapse = Origo.ui.Collapse({
     cls: 'bottom-fader',
     bubble: true,
     headerComponent,
     contentComponent,
     collapseX: false,
-    contentStyle: { "min-height": "35px" }
+    contentStyle: { 'min-height': '35px' }
   });
 
   return Origo.ui.Component({
     getData: () => data,
     onInit() {
-      layerAdder = LayerAdder({ 
+      layerAdder = LayerAdder({
         viewer,
         layerId: data[layerId.name],
         title: data[title.name],
@@ -69,16 +69,16 @@ const layerItem = function layerItem(options = {}) {
             collapseEl.classList.add('bottom-fader');
           }
         }
-      })
+      });
       this.dispatch('render');
     },
     render() {
       let textElements = `<div class="text-black text-grey-dark text-normal text-weight-bold">${data[title.name]}</div>
-                          <p class="relative text-grey text-smaller text-height-smaller overflow-hidden">${data[description.name]}</p>`                          
-      if (data[description.name].length > 280){
+                          <p class="relative text-grey text-smaller text-height-smaller overflow-hidden">${data[description.name]}</p>`;
+      if (data[description.name].length > 280) {
         this.addComponent(collapse);
         textElements = `${collapse.render()}`;
-          }
+      }
       return `<li id="${this.getId()}" class="${cls}" style="${style}">
               <div class="flex row">
                   <div class="grow">
@@ -88,9 +88,9 @@ const layerItem = function layerItem(options = {}) {
                     ${layerAdder.render()}
                   </div>
                 </div>
-             </li>`
+             </li>`;
     }
   });
-}
+};
 
 export default layerItem;

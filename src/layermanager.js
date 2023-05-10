@@ -7,9 +7,8 @@ import layerRequester from './layermanager/layerrequester';
 import { onAddDraggable, onRemoveDraggable, InitDragAndDrop } from './layermanager/dragdrop';
 import { GetAddedLayers, ReadAddedLayersFromMapState } from './layermanager/mapstatelayers';
 
-
 const Layermanager = function Layermanager(options = {}) {
-  let {
+  const {
     target
   } = options;
   const {
@@ -31,9 +30,9 @@ const Layermanager = function Layermanager(options = {}) {
   let filterMenu;
   let main;
   let viewer;
-  let isActive = false
-  let backDropId = Origo.ui.cuid();
-  let searchText = ''
+  let isActive = false;
+  const backDropId = Origo.ui.cuid();
+  let searchText = '';
   const name = 'layermanager';
   const clearCls = 'absolute round small icon-smaller grey-lightest';
   const icon = '#ic_clear_24px';
@@ -62,10 +61,10 @@ const Layermanager = function Layermanager(options = {}) {
   });
 
   const setActive = function setActive(e) {
-    if(!isActive){
-      //searchText might have value if it was given with dispatch
+    if (!isActive) {
+      // searchText might have value if it was given with dispatch
       searchText = e.searchText;
-      isActive = true
+      isActive = true;
       this.render();
     }
   };
@@ -73,41 +72,41 @@ const Layermanager = function Layermanager(options = {}) {
   const onClickClose = function onClickClose() {
     document.getElementById(this.getId()).remove();
     document.getElementById(backDropId).remove();
-    isActive = false
+    isActive = false;
     searchText = '';
     this.dispatch('close');
   };
 
-  function checkESC(e){
+  function checkESC(e) {
     if (e.keyCode == 27) {
       closeButton.dispatch('click');
     }
   }
 
-  function addAddedLayersToMapState(state){
+  function addAddedLayersToMapState(state) {
     state[name] = GetAddedLayers(viewer, group);
   }
 
   return Origo.ui.Component({
     name,
-    getErrorMsg(){
-      return addLayerErrorMsg
+    getErrorMsg() {
+      return addLayerErrorMsg;
     },
     onAdd(e) {
       viewer = e.target;
       viewer.on('active:layermanager', setActive.bind(this));
-      viewer.addGroup(group)
+      viewer.addGroup(group);
       InitDragAndDrop(group);
-      viewer.on("addlayer", (l) => {
-        let addedLayer = viewer.getLayer(l.layerName); 
-        if(addedLayer.get('group') == group.name) onAddDraggable(addedLayer);
+      viewer.on('addlayer', (l) => {
+        const addedLayer = viewer.getLayer(l.layerName);
+        if (addedLayer.get('group') == group.name) onAddDraggable(addedLayer);
       });
       viewer.getMap().getLayers().on('remove', (e) => {
-        let removedLayer = e.element;
-        if(removedLayer.get('group') == group.name) onRemoveDraggable(removedLayer)
+        const removedLayer = e.element;
+        if (removedLayer.get('group') == group.name) onRemoveDraggable(removedLayer);
       });
-      let legend = viewer.getControlByName('legend');
-      legend.addButtonToTools(openBtn)
+      const legend = viewer.getControlByName('legend');
+      legend.addButtonToTools(openBtn);
       main = Main({
         viewer,
         sourceFields,
@@ -118,25 +117,25 @@ const Layermanager = function Layermanager(options = {}) {
         noAbstractInfo,
         noLegendIcon
       });
-      filterMenu = FilterMenu({types});
+      filterMenu = FilterMenu({ types });
       this.addComponent(closeButton);
       this.addComponent(main);
       this.addComponent(filterMenu);
-      filterMenu.on("filter:change", main.onUpdateLayerList)
+      filterMenu.on('filter:change', main.onUpdateLayerList);
       closeButton.on('click', onClickClose.bind(this));
 
-      let sharemap = viewer.getControlByName('sharemap');
+      const sharemap = viewer.getControlByName('sharemap');
       sharemap.addParamsToGetMapState(name, addAddedLayersToMapState);
-      let sharedLayers = viewer.getUrlParams()[name]; 
-      if(sharedLayers) {
+      const sharedLayers = viewer.getUrlParams()[name];
+      if (sharedLayers) {
         ReadAddedLayersFromMapState(sharedLayers, viewer);
         if (viewer.getControlByName('legend').getState().visibleLayersViewActive) {
           viewer.getControlByName('legend').setVisibleLayersViewActive(true);
         }
       }
     },
-    getActiveFilters(){
-      return filterMenu.getActiveFilters()
+    getActiveFilters() {
+      return filterMenu.getActiveFilters();
     },
     onInit() {
       this.on('render', this.onRender);
@@ -144,8 +143,8 @@ const Layermanager = function Layermanager(options = {}) {
     onRender() {
       LayerListStore.clear();
       layerRequester({ url, searchText, noAbstractInfo });
-      document.getElementById(backDropId).addEventListener('click', ()=>{closeButton.dispatch('click');});
-      window.addEventListener('keyup', checkESC,{once:true});
+      document.getElementById(backDropId).addEventListener('click', () => { closeButton.dispatch('click'); });
+      window.addEventListener('keyup', checkESC, { once: true });
     },
     render() {
       const template = `
@@ -166,10 +165,10 @@ const Layermanager = function Layermanager(options = {}) {
       this.dispatch('render');
     }
   });
-}
+};
 
-//if (window.Origo) {
+// if (window.Origo) {
 //  Origo.controls.Layermanager = Layermanager;
-//}
+// }
 
 export default Layermanager;

@@ -58,20 +58,20 @@ const LayerSearch = function LayerSearch(options = {}) {
       this.dispatch('render');
     },
     render() {
-      searchText = ''
-      clearButton.setState('hidden')
+      searchText = '';
+      clearButton.setState('hidden');
       return `<div id="${this.getId()}" class="flex row align-center no-grow no-shrink bg-grey-lightest padding-small margin-bottom rounded ${cls}" style="${style}">
                 ${searchButton.render()}
                 <input id="${searchId}" class="flex grow padding-left-small search small grey" placeholder="${placeholder}">
                 ${clearButton.render()}
-              </div>`
+              </div>`;
     },
     onSearch(e) {
       const key = e.keyCode;
-      if (key == 27) return; //allows layermanager.checkESC to execute when ESC is pressed.
+      if (key == 27) return; // allows layermanager.checkESC to execute when ESC is pressed.
       e.stopPropagation();
       if (!(key in keyCodes)) {
-        const currentSearchValue = searchEl.value || ''
+        const currentSearchValue = searchEl.value || '';
         const currentSearchText = currentSearchValue.toLowerCase();
         this.toggleSearchState(currentSearchText);
       }
@@ -84,13 +84,13 @@ const LayerSearch = function LayerSearch(options = {}) {
           clearButton.setState('initial');
         }
         searchText = newSearchText;
-        clearTimeout(typingTimer)
+        clearTimeout(typingTimer);
         setTimeout(() => {
-          this.dispatch('change:text', { searchText })
-        }, 200)
+          this.dispatch('change:text', { searchText });
+        }, 200);
       }
     }
   });
-}
+};
 
 export default LayerSearch;

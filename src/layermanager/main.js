@@ -5,7 +5,7 @@ import LayerSearch from './layersearch';
 
 const Main = function Main(options = {}) {
   const {
-    cls: clsSettings = '',
+    cls: clsSettings = ''
   } = options;
 
   const cls = `${clsSettings} layer-list flex column overflow-hidden`.trim();
@@ -40,6 +40,6 @@ const Main = function Main(options = {}) {
       layerList.addLayers(list);
     }
   });
-}
+};
 
 export default Main;

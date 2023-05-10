@@ -16,7 +16,7 @@ const LayerList = function LayerList(options = {}) {
   } = options;
 
   let layerItems;
-  let scrollPos; //control scroll position when loading in more
+  let scrollPos; // control scroll position when loading in more
   const searchFields = Object.keys(sourceFields).reduce((prev, curr) => {
     if (sourceFields[curr].searchable) {
       return prev.concat(curr);
@@ -28,27 +28,23 @@ const LayerList = function LayerList(options = {}) {
 
   const sortAscending = (list, key) => {
     if (key) {
-      return list.sort((a,b) => (a[key] > b[key]) ? 1 : ((b[key] > a[key]) ? -1 : 0))
+      return list.sort((a, b) => ((a[key] > b[key]) ? 1 : ((b[key] > a[key]) ? -1 : 0)));
     }
     return list;
   };
 
-  const createLayerItems = (list) => {
-    //const sorted = sortAscending(list, sourceFields.title.name);
-    //let CSW-call do the sorting
-    return list.map((layer) => {
-      return LayerItem({ 
-        data: layer,
-        sourceFields,
-        sourceUrl,
-        url,
-        viewer,
-        layersDefaultProps,
-        noLegendIcon
-      });
-    });
-  };
-
+  const createLayerItems = (list) =>
+    // const sorted = sortAscending(list, sourceFields.title.name);
+    // let CSW-call do the sorting
+    list.map((layer) => LayerItem({
+      data: layer,
+      sourceFields,
+      sourceUrl,
+      url,
+      viewer,
+      layersDefaultProps,
+      noLegendIcon
+    }));
   const findMatch = (searchString, data) => {
     const isMatch = searchFields.reduce((result, field) => {
       const searchField = sourceFields[field].name;
@@ -57,7 +53,8 @@ const LayerList = function LayerList(options = {}) {
         if (searchData) {
           searchData = searchData.toLowerCase();
           if (searchData.search(searchString) > -1) return true;
-        }        }
+        }
+      }
       return result;
     }, false);
     return isMatch;
@@ -73,13 +70,12 @@ const LayerList = function LayerList(options = {}) {
   };
 
   const noItemsMessage = Origo.ui.Component({
-    render(){
+    render() {
       return `<li id="${this.getId()}">
               ${noSearchResultText}
-         </li>`
+         </li>`;
     }
-  })
-  
+  });
 
   return Origo.ui.Component({
     addLayers(list) {
@@ -87,57 +83,57 @@ const LayerList = function LayerList(options = {}) {
       this.addComponents(layerItems);
       this.update();
     },
-    onRender(){
-      scrollPos = 0
+    onRender() {
+      scrollPos = 0;
     },
     render(cmps) {
-      const components = cmps ? cmps : this.getComponents();
-      
-      //Empty array means no items to show, add a message as visual feedback
-      if(components.length == 0){
-        components.push(noItemsMessage)
-        this.addComponent(noItemsMessage)
+      const components = cmps || this.getComponents();
+
+      // Empty array means no items to show, add a message as visual feedback
+      if (components.length == 0) {
+        components.push(noItemsMessage);
+        this.addComponent(noItemsMessage);
       }
       return `<div id="${this.getId()}" class="o-list-container flex column overflow-auto-y padding-right-large">
                 <ul class="divided list">${renderListItems(components)}</ul>
-              </div>`
+              </div>`;
     },
     search(searchText) {
-      let filters = viewer.getControlByName('layermanager').getActiveFilters()
-      layerRequester({ //new request with searchstring
-        searchText : searchText, 
-        themes : filters,
+      const filters = viewer.getControlByName('layermanager').getActiveFilters();
+      layerRequester({ // new request with searchstring
+        searchText,
+        themes: filters,
         noAbstractInfo,
         url
-      }); 
-      scrollPos = document.getElementById(this.getId()).scrollTop 
+      });
+      scrollPos = document.getElementById(this.getId()).scrollTop;
     },
     update(cmps) {
       const el = document.getElementById(this.getId());
       const htmlString = cmps ? this.render(cmps) : this.render();
       const newEl = Origo.ui.dom.html(htmlString);
       el.parentNode.replaceChild(newEl, el);
-      this.dispatch('render'); 
-      //After rendering and updating is done, set the scroll event
-      const currentEl = document.getElementById(this.getId())
+      this.dispatch('render');
+      // After rendering and updating is done, set the scroll event
+      const currentEl = document.getElementById(this.getId());
       let ready = true;
       currentEl.addEventListener('scroll', async () => {
         if ((currentEl.scrollTop > 0) && (Math.ceil(currentEl.scrollTop + currentEl.clientHeight) >= currentEl.scrollHeight) && ready) {
           ready = false;
           scrollPos = currentEl.scrollHeight - currentEl.offsetHeight;
-          let searchText = currentEl.parentNode.getElementsByTagName("input")[0].value;
-          let filters = viewer.getControlByName('layermanager').getActiveFilters();
+          const searchText = currentEl.parentNode.getElementsByTagName('input')[0].value;
+          const filters = viewer.getControlByName('layermanager').getActiveFilters();
           await layerRequester({
             searchText,
             noAbstractInfo,
-            themes : filters, 
-            startRecord: this.getComponents().length+1, 
-            extend : true,
+            themes: filters,
+            startRecord: this.getComponents().length + 1,
+            extend: true,
             url
-          })
+          });
           ready = true;
-        } 
-      })
+        }
+      });
       currentEl.scrollTop = scrollPos;
     }
   });

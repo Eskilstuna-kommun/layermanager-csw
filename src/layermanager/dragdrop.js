@@ -18,7 +18,7 @@ const addDropSupport = function addDropSupport(el) {
   el.addEventListener('dragleave', (event) => { if (event.target.title === 'drop') { event.target.style.background = ''; } }, false);
   el.addEventListener('drop', (event) => {
     event.preventDefault();
-    //layer above dropzone
+    // layer above dropzone
     let targetNeighbourTitle = '';
     event.target.style.background = '';
 
@@ -51,17 +51,17 @@ const addDropSupport = function addDropSupport(el) {
           });
         }
       } else {
-        //layer below dropzone
+        // layer below dropzone
         let nextSiblingTitle = '';
         if (dropIndex !== -1) {
           targetNeighbourTitle = contentFromChildEl(event.target.previousSibling);
-          //nextSiblingTitle = contentFromChildEl(event.target.nextSibling);
+          // nextSiblingTitle = contentFromChildEl(event.target.nextSibling);
         } else {
           dropIndex = Array.prototype.indexOf.call(parent.childNodes, parent.lastElementChild) - 1;
           targetNeighbourTitle = contentFromChildEl(parent.childNodes[dropIndex].previousSibling);
           nextSiblingTitle = contentFromChildEl(parent.childNodes[dropIndex].nextSibling);
         }
-        if (targetNeighbourTitle === draggedElementTitle|| nextSiblingTitle === draggedElementTitle) {
+        if (targetNeighbourTitle === draggedElementTitle || nextSiblingTitle === draggedElementTitle) {
           moveLayer = false;
         } else {
           addedLayers.forEach((layer) => {
@@ -75,7 +75,7 @@ const addDropSupport = function addDropSupport(el) {
           });
         }
       }
- 
+
       if (moveLayer) {
         const zIndexList = [];
 
@@ -90,7 +90,7 @@ const addDropSupport = function addDropSupport(el) {
         layerTargetZIndex = layerTarget.getZIndex();
         layerDraggedZIndex = layerDragged.getZIndex();
 
-        //sets the z indexes on all layers based on the drag and drop locations
+        // sets the z indexes on all layers based on the drag and drop locations
         otherLayers.forEach((element) => {
           if (element.getZIndex() === layerTargetZIndex) {
             element.setZIndex(element.getZIndex() - 0.01);
@@ -132,7 +132,7 @@ const addDropSupport = function addDropSupport(el) {
         const dropSlot = parent.firstElementChild;
 
         const childSorted = [];
-        zIndexCounter = zIndexStart + (addedLayers.length/100);
+        zIndexCounter = zIndexStart + (addedLayers.length / 100);
 
         addedLayers.forEach((layer) => {
           layer.setZIndex(zIndexCounter);
@@ -186,13 +186,13 @@ const addDragSupport = function addDragSupport(el) {
   el.addEventListener('dragend', (event) => { event.target.style.opacity = ''; }, false);
 };
 
-export const InitDragAndDrop = function InitDragAndDrop(group){
+export const InitDragAndDrop = function InitDragAndDrop(group) {
   const allSpanTagElements = document.getElementsByTagName('span');
   let overlayEl;
   for (let i = 0; i < allSpanTagElements.length; i += 1) {
     const item = allSpanTagElements[i];
     if (item.textContent === (`${group.title}`)) {
-      //Some not-so-good traversal in dom to get to correct element to append
+      // Some not-so-good traversal in dom to get to correct element to append
       overlayEl = item.parentElement.nextElementSibling.firstElementChild;
       break;
     }
@@ -200,8 +200,8 @@ export const InitDragAndDrop = function InitDragAndDrop(group){
   let dropzoneEl = Origo.ui.dom.html(dropZone);
   dropzoneEl = dropzoneEl.childNodes[0];
   addDropSupport(dropzoneEl);
-  overlayEl.appendChild(dropzoneEl)
-}
+  overlayEl.appendChild(dropzoneEl);
+};
 
 export const onAddDraggable = function onAddDraggable(layer) {
   const allDivTagElements = document.getElementsByTagName('div');

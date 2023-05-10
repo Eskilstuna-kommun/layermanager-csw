@@ -4,5 +4,4 @@ const readAsync = promise => (
     .catch(error => ({ error, data: null }))
 );
 
-
 export default readAsync;

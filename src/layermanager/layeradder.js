@@ -69,7 +69,7 @@ const LayerAdder = function LayerAdder(options = {}) {
   const inactive = function inactive() {
     this.setIcon(mapIcon);
     const el = document.getElementById(this.getId());
-    el.children[0].children[0].children[0].innerHTML =  'Finns i kartan';
+    el.children[0].children[0].children[0].innerHTML = 'Finns i kartan';
     el.classList.remove('primary');
     el.classList.add('grey');
   };
@@ -123,7 +123,7 @@ const LayerAdder = function LayerAdder(options = {}) {
       }
 
       if (legendJson) {
-        let vendorParam = ''
+        let vendorParam = '';
         if (!theme) vendorParam = '&legend_options=dpi:300';
         styleProperty = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}`;
       } else {
