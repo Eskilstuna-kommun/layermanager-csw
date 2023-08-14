@@ -3,6 +3,7 @@ import 'Origo';
 const LayerSearch = function LayerSearch(options = {}) {
   const {
     cls = '',
+    onlyAddableLayersBtn,
     placeholder = 'Sök lager i katalogen',
     style: styleOptions = {
       height: '2.125rem',
@@ -29,8 +30,12 @@ const LayerSearch = function LayerSearch(options = {}) {
   let clearButton;
   let searchButton;
   let typingTimer;
+  let addLayerFilterButton;
+  const getFilterBtn = () => addLayerFilterButton;
+  const isItActive = onlyAddableLayersBtn ? 'active' : 'inactive';
 
   return Origo.ui.Component({
+    getFilterBtn,
     onInit() {
       clearButton = Origo.ui.Button({
         cls: 'compact icon-smaller no-shrink hidden',
@@ -50,7 +55,31 @@ const LayerSearch = function LayerSearch(options = {}) {
         icon: '#ic_search_24px'
       });
       this.addComponent(clearButton);
+
+      addLayerFilterButton = Origo.ui.Button({
+        cls: 'icon-small padding-left-large no-shrink',
+        click() {
+          if (this.getState() == 'inactive') {
+            this.dispatch('change');
+            this.setState('active');
+          } else {
+            this.setState('inactive');
+            this.dispatch('change');
+          }
+          const searchText = document.getElementById(this.getId()).parentNode.getElementsByTagName('input')[0].value;
+          this.dispatch('change:text', { searchText });
+        },
+        state: `${isItActive}`,
+        tooltipText: 'Visar enbart tilläggbara lager',
+        tooltipPlacement: 'west',
+        icon: '#ic_add_notes_24px',
+        data: { title: 'Tilläggbara lager' }
+      });
+      if (onlyAddableLayersBtn) {
+        this.addComponent(addLayerFilterButton);
+      }
     },
+
     onRender() {
       searchEl = document.getElementById(searchId);
       searchEl.addEventListener('keyup', this.onSearch.bind(this));
@@ -60,6 +89,14 @@ const LayerSearch = function LayerSearch(options = {}) {
     render() {
       searchText = '';
       clearButton.setState('hidden');
+      if (onlyAddableLayersBtn) {
+        return `<div id="${this.getId()}" class="flex row align-center no-grow no-shrink bg-grey-lightest padding-small margin-bottom rounded ${cls}" style="${style}">
+                ${searchButton.render()}
+                <input id="${searchId}" class="flex grow padding-left-small search small grey" placeholder="${placeholder}">
+                ${clearButton.render()}
+                ${addLayerFilterButton.render()}
+              </div>`;
+      }
       return `<div id="${this.getId()}" class="flex row align-center no-grow no-shrink bg-grey-lightest padding-small margin-bottom rounded ${cls}" style="${style}">
                 ${searchButton.render()}
                 <input id="${searchId}" class="flex grow padding-left-small search small grey" placeholder="${placeholder}">

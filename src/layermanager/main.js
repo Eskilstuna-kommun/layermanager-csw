@@ -5,21 +5,26 @@ import LayerSearch from './layersearch';
 
 const Main = function Main(options = {}) {
   const {
+    onlyAddableLayersBtn,
     cls: clsSettings = ''
   } = options;
 
   const cls = `${clsSettings} layer-list flex column overflow-hidden`.trim();
   let layerList;
   let layerSearch;
+  const getLayerSearch = () => layerSearch;
 
   return Origo.ui.Component({
+    getLayerSearch,
     onInit() {
+      layerSearch = LayerSearch({ onlyAddableLayersBtn });
+      options.layerSearch = layerSearch;
       layerList = LayerList(options);
-      layerSearch = LayerSearch();
       this.addComponent(layerList);
       this.addComponent(layerSearch);
       LayerListStore.on('change', this.onUpdateListStore.bind(this));
       layerSearch.on('change:text', this.onUpdateLayerList);
+      layerSearch.getFilterBtn().on('change:text', this.onUpdateLayerList);
     },
     onRender() {
       this.dispatch('render');

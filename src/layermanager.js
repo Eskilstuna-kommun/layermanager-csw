@@ -22,6 +22,7 @@ const Layermanager = function Layermanager(options = {}) {
     noAbstractInfo,
     noLegendIcon,
     types,
+    onlyAddableLayersBtn,
     addLayerErrorMsg
   } = options;
 
@@ -115,7 +116,8 @@ const Layermanager = function Layermanager(options = {}) {
         layersDefaultProps,
         noSearchResultText,
         noAbstractInfo,
-        noLegendIcon
+        noLegendIcon,
+        onlyAddableLayersBtn
       });
       filterMenu = FilterMenu({ types });
       this.addComponent(closeButton);
@@ -142,7 +144,8 @@ const Layermanager = function Layermanager(options = {}) {
     },
     onRender() {
       LayerListStore.clear();
-      layerRequester({ url, searchText, noAbstractInfo });
+      const layerSearch = main.getLayerSearch();
+      layerRequester({ url, searchText, noAbstractInfo, layerSearch });
       document.getElementById(backDropId).addEventListener('click', () => { closeButton.dispatch('click'); });
       window.addEventListener('keyup', checkESC, { once: true });
     },

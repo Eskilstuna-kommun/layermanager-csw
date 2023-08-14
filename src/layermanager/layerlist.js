@@ -12,7 +12,8 @@ const LayerList = function LayerList(options = {}) {
     noSearchResultText = 'No results..',
     noLegendIcon = 'img/png/raster.png',
     noAbstractInfo,
-    layersDefaultProps
+    layersDefaultProps,
+    layerSearch
   } = options;
 
   let layerItems;
@@ -104,7 +105,8 @@ const LayerList = function LayerList(options = {}) {
         searchText,
         themes: filters,
         noAbstractInfo,
-        url
+        url,
+        layerSearch
       });
       scrollPos = document.getElementById(this.getId()).scrollTop;
     },
@@ -129,7 +131,8 @@ const LayerList = function LayerList(options = {}) {
             themes: filters,
             startRecord: this.getComponents().length + 1,
             extend: true,
-            url
+            url,
+            layerSearch
           });
           ready = true;
         }

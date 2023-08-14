@@ -11,8 +11,11 @@ const layerRequester = async function layerRequester({
   startRecord = 1,
   extend = false,
   themes = [],
-  noAbstractInfo = ''
+  noAbstractInfo = '',
+  layerSearch
 } = {}) {
+  const search = layerSearch;
+  const addLayerFilterButton = search.getFilterBtn();
   function parseThemes() {
     let activeThemes = '';
     themes.forEach(theme => {
@@ -28,16 +31,27 @@ const layerRequester = async function layerRequester({
   function buildFilter() {
     let filter = '<ogc:Filter>';
     let themesActive = false;
-    if (themes.length != 0) {
-      filter += '<ogc:And>';
+    if (themes.length !== 0) {
       themesActive = true;
+    }
+    if (themesActive || addLayerFilterButton.getState() === 'active') {
+      filter += '<ogc:And>';
+    }
+
+    if (addLayerFilterButton.getState() === 'active') {
+      filter += `<ogc:PropertyIsLike matchCase="false" wildCard="%" singleChar="_" escapeChar="\">
+          <ogc:PropertyName>protocol</ogc:PropertyName>
+          <ogc:Literal>%OGC:WMS-1.1.1-http-get-map%</ogc:Literal>
+        </ogc:PropertyIsLike>`;
     }
     filter += `<ogc:PropertyIsLike matchCase="false" wildCard="%" singleChar="_" escapeChar="\">
                 <ogc:PropertyName>title</ogc:PropertyName>
                 <ogc:Literal>%${searchText}%</ogc:Literal>
               </ogc:PropertyIsLike>`;
     if (themesActive) {
-      filter += (themes.length == 1) ? `${parseThemes()}</ogc:And>` : `<ogc:Or>${parseThemes()}</ogc:Or></ogc:And>`;
+      filter += (themes.length === 1) ? `${parseThemes()}</ogc:And>` : `<ogc:Or>${parseThemes()}</ogc:Or></ogc:And>`;
+    } else if (addLayerFilterButton.getState() === 'active') {
+      filter += '</ogc:And>';
     }
     filter += '</ogc:Filter>';
     return filter;
