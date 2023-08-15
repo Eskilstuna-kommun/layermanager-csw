@@ -26,6 +26,7 @@ The plugin can be loaded like this in an html-file:
                         "Buildings",
                         "Oceans",
                     ],
+                    onlyAddableLayersBtn: true,
                     layersDefaultProps: {
                         group: "mylayers",
                         queryable: true,
