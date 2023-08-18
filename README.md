@@ -7,6 +7,18 @@ Works as a plugin in the same way. Instructions to follow.
 First you have to create a subfolder in the Origo-map directory named plugins/ where you can put the built version of layermanager-csv.
 Then you configure the index.html like in the example.
 
+## Options
+### Layermanager settings (in html file)
+Option | Type | Description
+---|---|---
+`types` | array | A list of themes to filter the results of the csw call.
+`onlyAddableLayersBtn` | boolean | Adds a button that enables to show only addable layers in the layer list. False and excluding this option behaves the same way, the button is not visible and all layers are visible.
+`layersDefaultProps` | object | Default properties of the added layers.
+`group` | object | Properties of the layermanager group in mapmenu .
+`noAbstractInfo` | string | Custom text if the result has no abstract information.
+`noSearchResultText` | string | Custom text if there is no search result.
+`url` | string | URL to CSW-service.
+`addLayerErrorMsg` | string | A custom error message informing the client of an error occurring due to the added layer.
 
 The plugin can be loaded like this in an html-file:
 ```
