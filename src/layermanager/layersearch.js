@@ -59,14 +59,14 @@ const LayerSearch = function LayerSearch(options = {}) {
       addLayerFilterButton = Origo.ui.Button({
         cls: 'icon-small padding-left-large no-shrink',
         click() {
-          if (this.getState() == 'inactive') {
+          if (this.getState() === 'inactive') {
             this.dispatch('change');
             this.setState('active');
           } else {
             this.setState('inactive');
             this.dispatch('change');
           }
-          const searchText = document.getElementById(this.getId()).parentNode.getElementsByTagName('input')[0].value;
+          searchText = document.getElementById(this.getId()).parentNode.getElementsByTagName('input')[0].value;
           this.dispatch('change:text', { searchText });
         },
         state: `${isItActive}`,
@@ -106,7 +106,7 @@ const LayerSearch = function LayerSearch(options = {}) {
     },
     onSearch(e) {
       const key = e.keyCode;
-      if (key == 27) return; // allows layermanager.checkESC to execute when ESC is pressed.
+      if (key === 27) return; // allows layermanager.checkESC to execute when ESC is pressed.
       e.stopPropagation();
       if (!(key in keyCodes)) {
         const currentSearchValue = searchEl.value || '';
