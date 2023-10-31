@@ -1,5 +1,4 @@
 import 'Origo';
-import swal from 'sweetalert';
 import FilterMenu from './layermanager/filtermenu';
 import LayerListStore from './layermanager/layerliststore';
 import Main from './layermanager/main';
