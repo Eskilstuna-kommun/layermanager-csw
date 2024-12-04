@@ -13,7 +13,8 @@ const LayerList = function LayerList(options = {}) {
     noLegendIcon = 'img/png/raster.png',
     noAbstractInfo,
     layersDefaultProps,
-    layerSearch
+    layerSearch,
+    statConf
   } = options;
 
   let layerItems;
@@ -44,7 +45,8 @@ const LayerList = function LayerList(options = {}) {
       url,
       viewer,
       layersDefaultProps,
-      noLegendIcon
+      noLegendIcon,
+      statConf
     }));
   const findMatch = (searchString, data) => {
     const isMatch = searchFields.reduce((result, field) => {

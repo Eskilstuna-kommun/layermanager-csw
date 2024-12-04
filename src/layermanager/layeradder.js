@@ -14,7 +14,8 @@ const LayerAdder = function LayerAdder(options = {}) {
     viewer,
     abstract = '',
     layersDefaultProps,
-    noLegendIcon
+    noLegendIcon,
+    statConf
   } = options;
 
   const layer = viewer.getLayer(layerId);
@@ -154,6 +155,19 @@ const LayerAdder = function LayerAdder(options = {}) {
         viewer.addStyle(styleProperty, style);
       }
       viewer.addLayer(newLayer);
+      if (statConf) {
+        const postOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            layers: [newLayer.name],
+            ext: statConf.ext
+          })
+        };
+        fetch(statConf.url, postOptions);
+      }
       this.setState('inactive');
     }
   };
