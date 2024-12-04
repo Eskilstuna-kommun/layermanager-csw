@@ -19,9 +19,10 @@ Option | Type | Description
 `noSearchResultText` | string | Custom text if there is no search result.
 `url` | string | URL to CSW-service.
 `addLayerErrorMsg` | string | A custom error message informing the client of an error occurring due to the added layer.
+`statConf` | object | An object with an `ext` for whether external facing map app and `url` for what url to post to property. Will post a json body to the specified url with a `layers` array (names) and the `ext` bool when a layer is added to the map. Optional.
 
 The plugin can be loaded like this in an html-file:
-```
+```html
         <link href="plugins/layermanager.css" rel="stylesheet">
         ...
         <script src="js/origo.min.js"></script>
@@ -81,9 +82,14 @@ The plugin can be loaded like this in an html-file:
                             "name": "src"
                         }
                     },
-                    addLayerErrorMsg: "There was a problem trying to add a layer. You are welcome to report this to SUPPORT@SUPPORT.com"
+                    addLayerErrorMsg: "There was a problem trying to add a layer. You are welcome to report this to SUPPORT@SUPPORT.com",
+                    statConf: {
+					    "url": "https://....layers/added/add",
+					    "ext": true,
+			        }
                 });
                 viewer.addComponent(layermanager);
+
                 
             });
         </script>
