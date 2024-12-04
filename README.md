@@ -19,7 +19,7 @@ Option | Type | Description
 `noSearchResultText` | string | Custom text if there is no search result.
 `url` | string | URL to CSW-service.
 `addLayerErrorMsg` | string | A custom error message informing the client of an error occurring due to the added layer.
-`statConf` | object | An object with an `ext` for whether external facing map app and `url` for what url to post to property. Will post a json body to the specified url with a `layers` array (names) and the `ext` bool when a layer is added to the map. Optional.
+`statConf` | object | An object with an `ext` property for whether external facing map app and `url` property for what url to post to. Will post a json body to the specified url with a `layers` array (names) and the `ext` bool when a layer is added to the map. Optional.
 
 The plugin can be loaded like this in an html-file:
 ```html
