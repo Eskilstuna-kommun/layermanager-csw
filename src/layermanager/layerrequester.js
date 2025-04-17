@@ -86,17 +86,24 @@ const layerRequester = async function layerRequester({
       </csw:Query>
     </csw:GetRecords> 
     `;
+
   const { error, data } = await readAsync(fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/xml' },
     body }).then((rsp) => rsp.text()));
     // const { error, data } = await readAsync(fetch(url).then(response => response.json()));
   if (error) {
-    console.log(error);
+    console.log(error); // eslint-disable-line no-console
   } else {
     // Parse the csw fetch to XML and get specific properties for layers
     const xml = new DOMParser().parseFromString(data, 'text/xml');
+    console.log('xml:'); // eslint-disable-line no-console
+    console.log(xml); // eslint-disable-line no-console
+
     const records = xml.getElementsByTagName('csw:Record');
+    console.log('cswrecords:'); // eslint-disable-line no-console
+    console.log(records); // eslint-disable-line no-console
+
     // Dont do anything if empty
     if (records.length == 0 && extend) {
       return;
@@ -106,9 +113,10 @@ const layerRequester = async function layerRequester({
       return;
     }
     let layers = [];
-    for (let i = 0; i < records.length; i++) {
+    for (let i = 0; i < records.length; i += 1) {
       const correctUri = records[i].querySelector('[protocol=\'OGC:WMS-1.1.1-http-get-map\']');
       const layerId = correctUri ? correctUri.getAttribute('name') : 'No id';
+
       let title = records[i].getElementsByTagName('dc:title')[0].childNodes[0];
       let description = records[i].getElementsByTagName('dc:description')[0].childNodes[0];
       const theme = 'no theme';
@@ -123,18 +131,52 @@ const layerRequester = async function layerRequester({
 
       title = title ? title.nodeValue : 'no title';
       description = description ? description.nodeValue : noAbstractInfo;
+
+      const subjects = records[i].getElementsByTagName('dc:subject');
+
+      let defaultStyle = '';
+      let defaultTitle = 'Standardstil';
+      let altStyle = '';
+      let altTitle = '';
+
+      for (let j = 0; j < subjects.length; j += 1) {
+        const subjectText = subjects[j].textContent;
+        if (subjectText.startsWith('style>')) {
+          const styleString = subjectText.substring(6); // remove 'style>'
+          const parts = styleString.split(';').filter(Boolean); // split and remove empty strings
+
+          if (parts[0]) {
+            const [s, t] = parts[0].split(':');
+            defaultStyle = s;
+            defaultTitle = t?.trim() || 'Standardstil';
+          }
+          if (parts[1]) {
+            const [as, at] = parts[1].split(':');
+            altStyle = as;
+            altTitle = at?.trim() || as;
+          }
+          break;
+        }
+      }
+
       layers.push({
         layerId,
         title,
         description,
         theme,
-        src
+        src,
+        defaultStyle,
+        defaultTitle,
+        altStyle,
+        altTitle
       });
     }
+    console.log('layers:', layers); // eslint-disable-line no-console
 
     // if to extend current list, used for "load more on scroll"-effect
     if (extend) { layers = LayerListStore.getList().concat(layers); }
     LayerListStore.updateList(layers);
+    console.log('LayerListStore:', LayerListStore.getList()); // eslint-disable-line no-console
   }
 
   return [];
