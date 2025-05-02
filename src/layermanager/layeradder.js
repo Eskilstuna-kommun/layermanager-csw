@@ -26,15 +26,16 @@ const LayerAdder = function LayerAdder(options = {}) {
   const initialBgCls = initialState === 'initial' ? 'primary' : 'grey';
   const initialToolTip = initialState === 'initial' ? 'Lägg till lager' : 'Finns i kartan';
   const cls = `${clsSettings} layeradder ${initialBgCls}`.trim();
-  const isValid = src == 'no src' ? 'hidden' : 'visible'; // decides hide or show button, depends if src exist for layer
+  const isValid = src === 'no src' ? 'hidden' : 'visible'; // decides hide or show button, depends if src exist for layer
 
   const allLayers = LayerListStore.getList();
   const currentLayer = allLayers.find(l => l.layerId === layerId);
-  console.log('currentLayer', currentLayer); // eslint-disable-line no-console
-  const defaultStyle = currentLayer?.defaultStyle || 'no style';
+  const defaultStyle = currentLayer.defaultStyle;
   const defaultTitle = currentLayer.defaultTitle;
-  const altStyle = currentLayer?.altStyle || 'no style';
+  const altStyle = currentLayer.altStyle;
   const altTitle = currentLayer.altTitle;
+  const stylesToCheck = [defaultStyle, altStyle]; // Combines defaultStyle and altStyle into an array.
+  const legendResults = [];
 
   const fetchLayer = async function fetchLayer() {
     const body = JSON.stringify([{
@@ -52,7 +53,7 @@ const LayerAdder = function LayerAdder(options = {}) {
       }).then(response => response.json());
       return result;
     } catch (err) {
-      console.log(err); // eslint-disable-line no-console
+      console.log(err);
     }
   };
 
@@ -98,7 +99,6 @@ const LayerAdder = function LayerAdder(options = {}) {
       if (srcUrl.includes('arcgis') || srcUrl.includes('WMSServer')) {
         let jsonUrl = srcUrl.replace(/\/arcgis(\/rest)?\/services\/([^/]+\/[^/]+)\/MapServer\/WMSServer/, '/arcgis/rest/services/$2/MapServer');
         jsonUrl = `${jsonUrl}/legend?f=json`;
-        console.log('jsonUrl', jsonUrl); // eslint-disable-line no-console
 
         try {
           const response = await fetch(jsonUrl);
@@ -115,9 +115,8 @@ const LayerAdder = function LayerAdder(options = {}) {
       // not an ArcGIS Server WMS layer, assume Geoserver
         if (src[src.length - 1] === '?') srcUrl = src.substring(0, src.length - 1); // some extra '?' from request breaks the url
 
-        const stylesToCheck = [defaultStyle, altStyle].filter(s => s && s !== 'no style');
-        const legendResults = [];
-
+        // For each style in stylesToCheck, constructs a URL to fetch the legend for that style. Uses fetch to make an HTTP request to the constructed URL.
+        // Parses the response as JSON and returns an object containing the style and the parsed json.
         const legendFetches = stylesToCheck.map(style => {
           const legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401&style=${style}`;
           return fetch(legendUrl)
@@ -125,20 +124,18 @@ const LayerAdder = function LayerAdder(options = {}) {
             .then(json => ({ style, json }));
         });
 
-        const results = (await Promise.all(legendFetches)).filter(Boolean);
+        // Executes all the fetch requests in parallel using Promise.all. Waits for all the requests to complete.
+        const results = (await Promise.all(legendFetches));
+        // Adds all the results to the legendResults array.
         legendResults.push(...results);
 
+        // Iterates over each result in results and checks for the conditions: Multiple Rules, Colormap, and Multiple Legends.
         results.forEach(({ json }) => {
-          const legend = json.Legend?.[0];
-          const hasMultipleRules = legend?.rules?.length > 1;
-          const hasColormap = legend?.rules?.[0]?.symbolizers?.[0]?.Raster?.colormap?.entries;
-
-          if (hasMultipleRules || hasColormap || json.Legend?.length > 1) {
+          const value = json.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
+          if ((json.Legend[0].rules.length > 1) || (json.Legend.length > 1)) {
             theme = true;
-          }
-
-          if (!legendJson) {
-            legendJson = json;
+          } else if (value) {
+            theme = true;
           }
         });
       }
@@ -172,12 +169,9 @@ const LayerAdder = function LayerAdder(options = {}) {
           {
             title: altTitle,
             style: altStyle,
-            // title: 'Alternativ stil anpassad för Tomtkartan',
-            // style: 'etuna_sv_lantmateriet_registerenhet_yta',
             hasThemeLegend: true
           },
           {
-            /// title: 'Standardstil',
             title: defaultTitle,
             defaultWMSServerStyle: true,
             initialStyle: true,
@@ -187,7 +181,6 @@ const LayerAdder = function LayerAdder(options = {}) {
           }
         ];
       }
-      console.log('newLayer.stylePicker', newLayer.stylePicker); // eslint-disable-line no-console
 
       const srcObject = {};
       srcObject[`${srcUrl}`] = { url: srcUrl };
@@ -200,8 +193,6 @@ const LayerAdder = function LayerAdder(options = {}) {
             extendedLegend: theme
           }]];
         viewer.addStyle(styleProperty, style);
-        console.log('style'); // eslint-disable-line no-console
-        console.log(style); // eslint-disable-line no-console
       }
       viewer.addLayer(newLayer);
       if (statConf) {
@@ -216,7 +207,6 @@ const LayerAdder = function LayerAdder(options = {}) {
           })
         };
         fetch(statConf.url, postOptions);
-        console.log('new layer', newLayer); // eslint-disable-line no-console
       }
       this.setState('inactive');
     }
