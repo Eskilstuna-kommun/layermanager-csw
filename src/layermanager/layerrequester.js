@@ -97,12 +97,8 @@ const layerRequester = async function layerRequester({
   } else {
     // Parse the csw fetch to XML and get specific properties for layers
     const xml = new DOMParser().parseFromString(data, 'text/xml');
-    console.log('xml:'); // eslint-disable-line no-console
-    console.log(xml); // eslint-disable-line no-console
 
     const records = xml.getElementsByTagName('csw:Record');
-    console.log('cswrecords:'); // eslint-disable-line no-console
-    console.log(records); // eslint-disable-line no-console
 
     // Dont do anything if empty
     if (records.length == 0 && extend) {
@@ -171,12 +167,10 @@ const layerRequester = async function layerRequester({
         altTitle
       });
     }
-    console.log('layers:', layers); // eslint-disable-line no-console
 
     // if to extend current list, used for "load more on scroll"-effect
     if (extend) { layers = LayerListStore.getList().concat(layers); }
     LayerListStore.updateList(layers);
-    console.log('LayerListStore:', LayerListStore.getList()); // eslint-disable-line no-console
   }
 
   return [];
