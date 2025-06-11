@@ -1,5 +1,4 @@
 import Origo from 'Origo';
-import readAsync from './readasync';
 import LayerListStore from './layerliststore';
 
 const LayerAdder = function LayerAdder(options = {}) {
@@ -8,8 +7,8 @@ const LayerAdder = function LayerAdder(options = {}) {
     cls: clsSettings = 'round compact boxshadow-subtle text-inverse icon-small',
     addIcon = '#ic_add_24px',
     mapIcon = '#ic_map_24px',
-    sourceUrl,
-    type = 'layer',
+    // sourceUrl,
+    // type = 'layer',
     title = 'Lägg till lager',
     src,
     viewer,
@@ -28,44 +27,22 @@ const LayerAdder = function LayerAdder(options = {}) {
   const cls = `${clsSettings} layeradder ${initialBgCls}`.trim();
   const isValid = src === 'no src' ? 'hidden' : 'visible'; // decides hide or show button, depends if src exist for layer
 
+  // Use LayerListStore to get all the added layers
   const allLayers = LayerListStore.getList();
+  // Get the layerID for the current layer
   const currentLayer = allLayers.find(l => l.layerId === layerId);
+  // Get defaultStyle, defaultTitle, altStyle, altTitle for the current layer
   const defaultStyle = currentLayer.defaultStyle;
   const defaultTitle = currentLayer.defaultTitle;
-  const altStyle = currentLayer.altStyle;
-  const altTitle = currentLayer.altTitle;
+  const altStyle = currentLayer.altStyle || [];
+  const altTitle = currentLayer.altTitle || [];
+
   const stylesToCheck = [defaultStyle, altStyle]; // Combines defaultStyle and altStyle into an array.
   const legendResults = [];
-
-  const fetchLayer = async function fetchLayer() {
-    const body = JSON.stringify([{
-      id: layerId,
-      type
-    }]);
-    try {
-      const result = await fetch(sourceUrl, {
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8'
-        },
-        method: 'POST',
-        mode: 'cors',
-        body
-      }).then(response => response.json());
-      return result;
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   const addSources = function addSources(sources) {
     Object.keys(sources).forEach((sourceName) => {
       viewer.addSource(sourceName, sources[sourceName]);
-    });
-  };
-
-  const addStyles = function addStyles(styles) {
-    Object.keys(styles).forEach((styleName) => {
-      viewer.addStyle(styleName, styles[styleName]);
     });
   };
 
@@ -159,27 +136,36 @@ const LayerAdder = function LayerAdder(options = {}) {
         source: srcUrl,
         abstract: abstractText,
         style: styleProperty,
-        theme
+        // style: defaultStyle,
+        theme,
+        stylePicker: [] // Initialize stylePicker
       };
 
       newLayer = Object.assign(newLayer, layersDefaultProps);
+      // Create the stylePicker array dynamically based on altStyles and altTitles
+      newLayer.stylePicker = [];
 
       if (theme) {
-        newLayer.stylePicker = [
-          {
-            title: altTitle,
-            style: altStyle,
+        // Add all alternative styles and titles to the stylePicker
+        altStyle.forEach((style, index) => {
+          const altTitleName = altTitle[index] || style; // Use the corresponding title or fallback to the style name
+          newLayer.stylePicker.push({
+            title: altTitleName,
+            style,
             hasThemeLegend: true
-          },
-          {
-            title: defaultTitle,
-            defaultWMSServerStyle: true,
-            initialStyle: true,
-            legendParams: {
-              legend_options: 'dpi:300'
-            }
+          });
+        });
+
+        // Add the default style to the stylePicker
+        newLayer.stylePicker.push({
+          title: defaultTitle,
+          style: defaultStyle,
+          // defaultWMSServerStyle: true, // With this enabled it do not work to get the rigth name for the default styleName, it sets it to name + WMSServerDefault
+          initialStyle: true,
+          legendParams: {
+            legend_options: 'dpi:300'
           }
-        ];
+        });
       }
 
       const srcObject = {};
