@@ -1,11 +1,7 @@
-// import data from './data';
 import LayerListStore from './layerliststore';
 import readAsync from './readasync';
 
-const requestAll = () => data;
-
 const layerRequester = async function layerRequester({
-  type = 'all',
   url = '',
   searchText = '',
   startRecord = 1,
@@ -19,10 +15,10 @@ const layerRequester = async function layerRequester({
   function parseThemes() {
     let activeThemes = '';
     themes.forEach(theme => {
-      theme = `${theme}`.replace(/ /g, '_');
+      const themeModified = `${theme}`.replace(/ /g, '_');
       activeThemes += `<ogc:PropertyIsLike matchCase="false" wildCard="%" singleChar="_" escapeChar="\">
           <ogc:PropertyName>subject</ogc:PropertyName>
-          <ogc:Literal>%${theme}%</ogc:Literal>
+          <ogc:Literal>%${themeModified}%</ogc:Literal>
         </ogc:PropertyIsLike>`;
     });
     return activeThemes;
@@ -91,7 +87,6 @@ const layerRequester = async function layerRequester({
     method: 'POST',
     headers: { 'Content-Type': 'application/xml' },
     body }).then((rsp) => rsp.text()));
-    // const { error, data } = await readAsync(fetch(url).then(response => response.json()));
   if (error) {
     console.log(error); // eslint-disable-line no-console
   } else {
@@ -101,10 +96,10 @@ const layerRequester = async function layerRequester({
     const records = xml.getElementsByTagName('csw:Record');
 
     // Dont do anything if empty
-    if (records.length == 0 && extend) {
+    if (records.length === 0 && extend) {
       return;
     }
-    if (records.length == 0) {
+    if (records.length === 0) {
       LayerListStore.clear();
       return;
     }
@@ -132,25 +127,42 @@ const layerRequester = async function layerRequester({
 
       let defaultStyle = '';
       let defaultTitle = 'Standardstil';
-      let altStyle = '';
-      let altTitle = '';
+      const altStyle = []; // Array to store multiple altStyles
+      const altTitle = []; // Array to store multiple altTitles
 
+      // Loops trough subjects to get the styles, then assigns it to defaultStyle, defaultTitle, altStyle, altTitle
       for (let j = 0; j < subjects.length; j += 1) {
         const subjectText = subjects[j].textContent;
         if (subjectText.startsWith('style>')) {
           const styleString = subjectText.substring(6); // remove 'style>'
           const parts = styleString.split(';').filter(Boolean); // split and remove empty strings
 
-          if (parts[0]) {
-            const [s, t] = parts[0].split(':');
-            defaultStyle = s;
-            defaultTitle = t?.trim() || 'Standardstil';
-          }
-          if (parts[1]) {
-            const [as, at] = parts[1].split(':');
-            altStyle = as;
-            altTitle = at?.trim() || as;
-          }
+          let localDefaultStyle = '';
+          let localDefaultTitle = 'Standardstil';
+          const localAltStyles = []; // Array to store multiple altStyles
+          const localAltTitles = []; // Array to store multiple altTitles
+
+          parts.forEach((part, index) => {
+            const [style, styleTitle] = part.split(':');
+
+            if (index === 0) {
+              // If index = 0, i.e first style is always the defaultStyle
+              localDefaultStyle = style;
+              localDefaultTitle = styleTitle?.trim() || 'Standardstil';
+            } else {
+              // Remaining styles are altStyles and altTitles
+              localAltStyles.push(style);
+              localAltTitles.push(styleTitle?.trim() || style);
+            }
+          });
+
+          // Assign local variables to outer variables after processing
+          defaultStyle = localDefaultStyle;
+          defaultTitle = localDefaultTitle;
+          altStyle.push(...localAltStyles);
+          altTitle.push(...localAltTitles);
+
+          // Exit the loop once styles are processed
           break;
         }
       }
@@ -161,10 +173,10 @@ const layerRequester = async function layerRequester({
         description,
         theme,
         src,
-        defaultStyle,
-        defaultTitle,
-        altStyle,
-        altTitle
+        defaultStyle, // Adds defaultStyle
+        defaultTitle, // Adds defaultTitle
+        altStyle, // Adds altStyle
+        altTitle // Adds altTitle
       });
     }
 
@@ -172,8 +184,6 @@ const layerRequester = async function layerRequester({
     if (extend) { layers = LayerListStore.getList().concat(layers); }
     LayerListStore.updateList(layers);
   }
-
-  return [];
 };
 
 export default layerRequester;
