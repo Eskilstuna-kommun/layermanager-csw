@@ -1,7 +1,15 @@
 export const GetAddedLayers = function GetAddedLayers(viewer, group) {
   const layers = viewer.getLayersByProperty('group', group.name);
   const addedLayers = [];
+
   layers.forEach((layer) => {
+    let stylePicker = layer.get('stylePicker') || []; // Get stylePicker from layer in layeradder.js
+    // Update the stylePicker to set initialStyle based on styleName (the name of the style)
+    stylePicker = stylePicker.map((entry) => ({
+      ...entry, // Spread the existing properties
+      initialStyle: entry.style === layer.styleName // Update initialStyle based on styleName
+    }));
+
     const addedLayer = {
       name: layer.get('name'),
       abstract: layer.get('abstract'),
@@ -10,8 +18,10 @@ export const GetAddedLayers = function GetAddedLayers(viewer, group) {
       useLegendGraphics: layer.get('useLegendGraphics'),
       zIndex: layer.getProperties().zIndex,
       source: layer.get('sourceName'),
-      style: layer.get('style'),
+      style: layer.get('styleProperty'), // Set style to styleProperty, from layeradder.js
+      styleName: layer.get('styleName'), // Set styleName to the current styleName, from layeradder.js
       title: layer.get('title'),
+      stylePicker, // Adds stylePicker to the shared layer
       type: layer.get('type'),
       infoFormat: layer.get('infoFormat'),
       group: layer.get('group'),
@@ -33,12 +43,25 @@ export const ReadAddedLayersFromMapState = function ReadAddedLayersFromMapState(
   });
   sharedLayers.forEach((layer) => {
     viewer.addSource(layer.source, { url: layer.source });
+
     const style = [[
       {
         icon: { src: layer.style },
         extendedLegend: layer.theme
       }]];
     viewer.addStyle(layer.style, style);
-    viewer.addLayer(layer);
+
+    // Use the stylePicker directly from the shared layer
+    const stylePicker = (layer.stylePicker || []).map((entry) => ({
+      ...entry, // Spread the existing properties
+      initialStyle: entry.style === layer.styleName // Update initialStyle based on layer.styleName
+    }));
+
+    // Add the layer to the viewer with the stylePicker
+    const layerWithStylePicker = {
+      ...layer,
+      stylePicker // Add the stylePicker property
+    };
+    viewer.addLayer(layerWithStylePicker);
   });
 };
