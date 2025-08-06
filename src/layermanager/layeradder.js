@@ -32,12 +32,12 @@ const LayerAdder = function LayerAdder(options = {}) {
   // Get the layerID for the current layer
   const currentLayer = allLayers.find(l => l.layerId === layerId);
   // Get defaultStyle, defaultTitle, altStyle, altTitle for the current layer
-  const defaultStyle = currentLayer.defaultStyle;
-  const defaultTitle = currentLayer.defaultTitle;
-  const altStyle = currentLayer.altStyle || [];
-  const altTitle = currentLayer.altTitle || [];
+  const defaultStyleName = currentLayer.defaultStyleName;
+  const defaultStyleTitle = currentLayer.defaultStyleTitle;
+  let results = [];
+  let defaultStyleIsThematic;
+  const layerStyles = currentLayer.stylePicker || [{ styleName: defaultStyleName, styleTitle: defaultStyleTitle }];
 
-  const stylesToCheck = [defaultStyle, altStyle]; // Combines defaultStyle and altStyle into an array.
   const legendResults = [];
 
   const addSources = function addSources(sources) {
@@ -94,92 +94,96 @@ const LayerAdder = function LayerAdder(options = {}) {
 
         // For each style in stylesToCheck, constructs a URL to fetch the legend for that style. Uses fetch to make an HTTP request to the constructed URL.
         // Parses the response as JSON and returns an object containing the style and the parsed json.
-        const legendFetches = stylesToCheck.map(style => {
-          const legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401&style=${style}`;
-          return fetch(legendUrl)
-            .then(res => res.json())
-            .then(json => ({ style, json }));
+        const legendFetches = layerStyles.map(style => {
+          const legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401&style=${style.styleName}`;
+          return fetch(legendUrl);
         });
-
-        // Executes all the fetch requests in parallel using Promise.all. Waits for all the requests to complete.
-        const results = (await Promise.all(legendFetches));
-        // Adds all the results to the legendResults array.
-        legendResults.push(...results);
+        const legendReplies = await Promise.all(legendFetches);
+        const legendJsons = await Promise.all(legendReplies.map(reply => reply.json()));
+        console.log('legendJsons:', legendJsons);
+        console.log('layerStyles:', layerStyles);
 
         // Iterates over each result in results and checks for the conditions: Multiple Rules, Colormap, and Multiple Legends.
-        results.forEach(({ json }) => {
-          const value = json.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
-          if ((json.Legend[0].rules.length > 1) || (json.Legend.length > 1)) {
-            theme = true;
-          } else if (value) {
-            theme = true;
+        legendJsons.forEach((Legend, index) => {
+          console.log('Legend:', Legend);
+          const value = Legend.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
+          if ((Legend.Legend[0].rules.length > 1) || (Legend.length > 1) || value) {
+            layerStyles[index].isThemeStyle = true;
+          } else {
+            layerStyles[index].isThemeStyle = false;
           }
         });
+        console.log('layerStyles:', layerStyles);
       }
 
-      if (legendJson) {
-        let vendorParam = '';
-        if (!theme) vendorParam = '&legend_options=dpi:300';
-        styleProperty = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}`;
-      } else {
-        styleProperty = noLegendIcon;
+      let legendUrls;
+
+      if (layerStyles.length > 0) {
+        legendUrls = layerStyles.map((style) => {
+          const vendorParam = !style.isThemeStyle ? '&legend_options=dpi:300' : '';
+          const legendUrl = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}&style=${style.styleName}`;
+          return legendUrl;
+        });
+        console.log('LayerAdder: legendUrls:', legendUrls);
       }
 
       let newLayer = {
         name: layerId,
         title,
-        defaultStyle,
-        defaultTitle,
-        altStyle,
-        altTitle,
+        style: legendUrls[0],
         removable: true,
         source: srcUrl,
-        abstract: abstractText,
-        style: styleProperty,
-        // style: defaultStyle,
-        theme,
-        stylePicker: [] // Initialize stylePicker
+        abstract: abstractText
       };
+      console.log('LayerAdder: newLayer:', newLayer);
 
       newLayer = Object.assign(newLayer, layersDefaultProps);
-      // Create the stylePicker array dynamically based on altStyles and altTitles
-      newLayer.stylePicker = [];
 
-      if (theme) {
-        // Add all alternative styles and titles to the stylePicker
-        altStyle.forEach((style, index) => {
-          const altTitleName = altTitle[index] || style; // Use the corresponding title or fallback to the style name
-          newLayer.stylePicker.push({
-            title: altTitleName,
-            style,
-            hasThemeLegend: true
-          });
-        });
-
-        // Add the default style to the stylePicker
-        newLayer.stylePicker.push({
-          title: defaultTitle,
-          style: defaultStyle,
-          // defaultWMSServerStyle: true, // With this enabled it do not work to get the rigth name for the default styleName, it sets it to name + WMSServerDefault
-          initialStyle: true,
-          legendParams: {
-            legend_options: 'dpi:300'
+      if (currentLayer.stylePicker) {
+        newLayer.stylePicker = [];
+        layerStyles.forEach((style, index) => {
+          // const altTitleName = altTitle[index] || style; // Use the corresponding title or fallback to the style name
+          const styleObject = {
+            title: style.styleTitle,
+            style: style.styleName,
+            hasThemeLegend: style.isThemeStyle
+          };
+          if (index === 0) {
+            styleObject.initialStyle = true;
           }
+          console.log('styleIsThemeStyle', style.isThemeStyle);
+          if (style.isThemeStyle === false) {
+            styleObject.legendParams = {
+              legend_options: 'dpi:300'
+            };
+          }
+          console.log('LayerAdder: styleObject:', styleObject);
+          newLayer.stylePicker.push(styleObject);
         });
+      } else {
+        newLayer.hasThemeLegend = layerStyles[0].isThemeStyle;
+        console.log('LayerAdder: newLayer.stylePicker:', newLayer.stylePicker);
       }
 
       const srcObject = {};
       srcObject[`${srcUrl}`] = { url: srcUrl };
       addSources(srcObject);
 
-      if (styleProperty) {
-        const style = [[
-          {
-            icon: { src: styleProperty },
-            extendedLegend: theme
-          }]];
-        viewer.addStyle(styleProperty, style);
+      if (legendUrls) {
+        legendUrls.forEach((legendUrl, index) => {
+          const style = [[
+            {
+              icon: { src: legendUrl },
+              extendedLegend: layerStyles[index].isThemeStyle
+            }]];
+            console.log('LayerAdder: style:', style);
+          viewer.addStyle(legendUrl, style);
+        });
       }
+      console.log('LayerAdder: newLayer:', newLayer);
+
+      // newLayer.styleName = legendUrls[0];
+      // newLayer.style = legendUrls[0];
       viewer.addLayer(newLayer);
       if (statConf) {
         const postOptions = {
