@@ -125,10 +125,11 @@ const layerRequester = async function layerRequester({
 
       const subjects = records[i].getElementsByTagName('dc:subject');
 
-      let defaultStyle = '';
-      let defaultTitle = 'Standardstil';
-      const altStyle = []; // Array to store multiple altStyles
-      const altTitle = []; // Array to store multiple altTitles
+      let defaultStyleName = '';
+      let defaultStyleTitle = 'Standardstil';
+      const altStyles = []; // Array to store multiple altStyles
+      const altTitles = []; // Array to store multiple altTitles
+      let stylePicker;
 
       // Loops trough subjects to get the styles, then assigns it to defaultStyle, defaultTitle, altStyle, altTitle
       for (let j = 0; j < subjects.length; j += 1) {
@@ -144,6 +145,7 @@ const layerRequester = async function layerRequester({
 
           parts.forEach((part, index) => {
             const [style, styleTitle] = part.split(':');
+            console.log('style:', style);
 
             if (index === 0) {
               // If index = 0, i.e first style is always the defaultStyle
@@ -157,10 +159,21 @@ const layerRequester = async function layerRequester({
           });
 
           // Assign local variables to outer variables after processing
-          defaultStyle = localDefaultStyle;
-          defaultTitle = localDefaultTitle;
-          altStyle.push(...localAltStyles);
-          altTitle.push(...localAltTitles);
+          defaultStyleName = localDefaultStyle;
+          defaultStyleTitle = localDefaultTitle;
+          altStyles.push(...localAltStyles);
+          altTitles.push(...localAltTitles);
+
+          if (altStyles.length > 0 && altTitles.length > 0) {
+            stylePicker = altTitles.map((altTitle, index) => ({
+              styleTitle: altTitle,
+              styleName: altStyles[index]
+            }));
+            stylePicker.unshift({
+              styleTitle: defaultStyleTitle,
+              styleName: defaultStyleName
+            });
+          }
 
           // Exit the loop once styles are processed
           break;
@@ -173,10 +186,9 @@ const layerRequester = async function layerRequester({
         description,
         theme,
         src,
-        defaultStyle, // Adds defaultStyle
-        defaultTitle, // Adds defaultTitle
-        altStyle, // Adds altStyle
-        altTitle // Adds altTitle
+        defaultStyleName,
+        defaultStyleTitle,
+        stylePicker
       });
     }
 
