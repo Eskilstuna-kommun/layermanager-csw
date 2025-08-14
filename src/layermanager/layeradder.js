@@ -135,6 +135,7 @@ const LayerAdder = function LayerAdder(options = {}) {
         source: srcUrl,
         abstract: abstractText
       };
+
       console.log('LayerAdder: newLayer:', newLayer);
 
       newLayer = Object.assign(newLayer, layersDefaultProps);
@@ -169,18 +170,16 @@ const LayerAdder = function LayerAdder(options = {}) {
       srcObject[`${srcUrl}`] = { url: srcUrl };
       addSources(srcObject);
 
-      if (legendUrls) {
+      if (legendUrls && !currentLayer.stylePicker) {
         legendUrls.forEach((legendUrl, index) => {
           const style = [[
             {
               icon: { src: legendUrl },
               extendedLegend: layerStyles[index].isThemeStyle
             }]];
-            console.log('LayerAdder: style:', style);
           viewer.addStyle(legendUrl, style);
         });
       }
-      console.log('LayerAdder: newLayer:', newLayer);
 
       // newLayer.styleName = legendUrls[0];
       // newLayer.style = legendUrls[0];

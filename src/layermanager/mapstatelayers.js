@@ -13,18 +13,20 @@ export const GetAddedLayers = function GetAddedLayers(viewer, group) {
       removable: layer.get('removable'),
       zIndex: layer.getProperties().zIndex,
       source: layer.get('sourceName'),
-      style: layer.get('style'), // Set style to styleProperty, from layeradder.js
+      style: layer.get('styleName'),
+      styleName: layer.get('styleName'),
       title: layer.get('title'),
-      // stylePicker, // Adds stylePicker to the shared layer
       type: layer.get('type'),
       infoFormat: layer.get('infoFormat'),
       group: layer.get('group'),
-      theme: layer.get('hasThemeLegend'),
+      hasThemeLegend: layer.get('hasThemeLegend') || layer.get('theme'),
       opacity: layer.get('opacity'),
       searchable: layer.get('searchable')
     };
-    if (stylePicker.length > 0) addedLayer.stylePicker = stylePicker;
-    console.log('GetAddedLayers: addedLayer:', addedLayer);
+    if (stylePicker.length > 0) {
+      addedLayer.stylePicker = stylePicker;
+      addedLayer.altStyleIndex = stylePicker.map((s) => s.style).indexOf(layer.get('styleName'));
+    } else addedLayer.styleName = 'default';
     addedLayers.push(addedLayer);
   });
   return addedLayers;
@@ -40,14 +42,15 @@ export const ReadAddedLayersFromMapState = function ReadAddedLayersFromMapState(
   sharedLayers.forEach((layer) => {
     viewer.addSource(layer.source, { url: layer.source });
 
-    const style = [[
-      {
-        icon: { src: layer.style },
-        extendedLegend: layer.theme
-      }]];
-      console.log('layer:', layer);
-    viewer.addStyle(layer.style, style);
+    if (!(layer?.stylePicker?.length > 0)) {
+      const style = [[
+        {
+          icon: { src: layer.style },
+          extendedLegend: layer.theme || layer.hasThemeLegend
+        }]];
 
+      viewer.addStyle(layer.style, style);
+    }
     viewer.addLayer(layer);
   });
 };
