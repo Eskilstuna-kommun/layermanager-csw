@@ -91,7 +91,10 @@ const LayerAdder = function LayerAdder(options = {}) {
         // For each style in stylesToCheck, constructs a URL to fetch the legend for that style. Uses fetch to make an HTTP request to the constructed URL.
         // Parses the response as JSON and returns an object containing the style and the parsed json.
         const legendFetches = layerStyles.map(style => {
-          const legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401&style=${style.styleName}`;
+          let legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401`;
+          if (layerStyles.length > 1) {
+            legendUrl += `&style=${style.styleName}`;
+          }
           return fetch(legendUrl);
         });
         const legendReplies = await Promise.all(legendFetches);
@@ -113,7 +116,10 @@ const LayerAdder = function LayerAdder(options = {}) {
       if (layerStyles.length > 0) {
         legendUrls = layerStyles.map((style) => {
           const vendorParam = !style.isThemeStyle ? '&legend_options=dpi:300' : '';
-          const legendUrl = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}&style=${style.styleName}`;
+          let legendUrl = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}`;
+          if (layerStyles.length > 1) {
+            legendUrl += `&style=${style.styleName}`;
+          }
           return legendUrl;
         });
       }
