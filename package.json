@@ -6,8 +6,8 @@
   "scripts": {
     "start": "npm-run-all --parallel watch-js watch-sass",
     "watch-js": "webpack-dev-server --config ./tasks/webpack.dev.js --mode development",
-    "watch-sass": "sass -w scss/layermanager.scss ../Ek-extern-2023/plugins/layermanager.css",
-    "prewatch-sass": "sass scss/layermanager.scss ../Ek-extern-2023/plugins/layermanager.css",
+    "watch-sass": "sass -w scss/layermanager.scss ../origo/plugins/layermanager.css",
+    "prewatch-sass": "sass scss/layermanager.scss ../origo/plugins/layermanager.css",
     "build": "webpack --config ./tasks/webpack.prod.js && npm run build-sass",
     "build-sass": "sass scss/layermanager.scss build/css/layermanager.css",
     "test": "echo \"Error: no test specified\" && exit 1"
