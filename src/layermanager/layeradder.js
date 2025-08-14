@@ -34,11 +34,7 @@ const LayerAdder = function LayerAdder(options = {}) {
   // Get defaultStyle, defaultTitle, altStyle, altTitle for the current layer
   const defaultStyleName = currentLayer.defaultStyleName;
   const defaultStyleTitle = currentLayer.defaultStyleTitle;
-  let results = [];
-  let defaultStyleIsThematic;
   const layerStyles = currentLayer.stylePicker || [{ styleName: defaultStyleName, styleTitle: defaultStyleTitle }];
-
-  const legendResults = [];
 
   const addSources = function addSources(sources) {
     Object.keys(sources).forEach((sourceName) => {
@@ -100,12 +96,9 @@ const LayerAdder = function LayerAdder(options = {}) {
         });
         const legendReplies = await Promise.all(legendFetches);
         const legendJsons = await Promise.all(legendReplies.map(reply => reply.json()));
-        console.log('legendJsons:', legendJsons);
-        console.log('layerStyles:', layerStyles);
 
         // Iterates over each result in results and checks for the conditions: Multiple Rules, Colormap, and Multiple Legends.
         legendJsons.forEach((Legend, index) => {
-          console.log('Legend:', Legend);
           const value = Legend.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
           if ((Legend.Legend[0].rules.length > 1) || (Legend.length > 1) || value) {
             layerStyles[index].isThemeStyle = true;
@@ -113,7 +106,6 @@ const LayerAdder = function LayerAdder(options = {}) {
             layerStyles[index].isThemeStyle = false;
           }
         });
-        console.log('layerStyles:', layerStyles);
       }
 
       let legendUrls;
@@ -124,7 +116,6 @@ const LayerAdder = function LayerAdder(options = {}) {
           const legendUrl = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}&style=${style.styleName}`;
           return legendUrl;
         });
-        console.log('LayerAdder: legendUrls:', legendUrls);
       }
 
       let newLayer = {
@@ -135,8 +126,6 @@ const LayerAdder = function LayerAdder(options = {}) {
         source: srcUrl,
         abstract: abstractText
       };
-
-      console.log('LayerAdder: newLayer:', newLayer);
 
       newLayer = Object.assign(newLayer, layersDefaultProps);
 
@@ -152,18 +141,15 @@ const LayerAdder = function LayerAdder(options = {}) {
           if (index === 0) {
             styleObject.initialStyle = true;
           }
-          console.log('styleIsThemeStyle', style.isThemeStyle);
           if (style.isThemeStyle === false) {
             styleObject.legendParams = {
               legend_options: 'dpi:300'
             };
           }
-          console.log('LayerAdder: styleObject:', styleObject);
           newLayer.stylePicker.push(styleObject);
         });
       } else {
         newLayer.hasThemeLegend = layerStyles[0].isThemeStyle;
-        console.log('LayerAdder: newLayer.stylePicker:', newLayer.stylePicker);
       }
 
       const srcObject = {};
