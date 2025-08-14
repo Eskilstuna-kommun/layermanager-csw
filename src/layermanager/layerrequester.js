@@ -145,7 +145,6 @@ const layerRequester = async function layerRequester({
 
           parts.forEach((part, index) => {
             const [style, styleTitle] = part.split(':');
-            console.log('style:', style);
 
             if (index === 0) {
               // If index = 0, i.e first style is always the defaultStyle
