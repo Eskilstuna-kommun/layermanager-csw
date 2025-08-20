@@ -11,7 +11,8 @@ const layerItem = function layerItem(options = {}) {
     sourceFields,
     layersDefaultProps,
     noLegendIcon,
-    statConf
+    statConf,
+    preDefinedThemePropStyles
   } = options;
 
   const {
@@ -57,7 +58,8 @@ const layerItem = function layerItem(options = {}) {
         abstract: data[description.name],
         layersDefaultProps,
         noLegendIcon,
-        statConf
+        statConf,
+        preDefinedThemePropStyles
       });
       this.addComponent(layerAdder);
     },
