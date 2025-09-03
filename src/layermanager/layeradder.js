@@ -134,10 +134,8 @@ const LayerAdder = function LayerAdder(options = {}) {
           }
         }
 
-        const settledPromises = await Promise.allSettled(fetchPromises.map(p => p.legendPromise)); // waits for any .thens
-        // settledPromises kan vara kortare än layerStyles, det är ok, det enda som behövs är index i layerStyles
-        // för varje settledPromise
-        // settledPromises kommer att vara lika lång som fetchPromises (och ha samma ordning)
+        const settledPromises = await Promise.allSettled(fetchPromises.map(p => p.legendPromise));
+
         settledPromises.forEach((res, index) => {
           const fetchPromise = fetchPromises[index];
           const layerStyleIndex = fetchPromise.index;
