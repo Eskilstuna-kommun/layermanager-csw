@@ -109,46 +109,58 @@ const LayerAdder = function LayerAdder(options = {}) {
 
         // Only fetch legends for styles that don't already have isThemeStyle
         // save index to match layerStyles with fetchPromises
+        // can handle that only some styles of a layer have predefined isThemeStyle prop
         const fetchPromises = [];
+        const geoserverErrorXmls = [];
         for (let i = 0; i < layerStyles.length; i += 1) {
           const style = layerStyles[i];
-          if (!('isThemeStyle' in style)) {
+          if (!('isThemeStyle' in style)) { // kan bara ha om fördefinierade
             let legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401`;
             if (layerStyles.length > 1) legendUrl += `&style=${style.styleName}`;
 
-            // build a promise that resolves to { index, json } or { index, error: true }
-            const p = fetch(legendUrl)
-              .then((resp) => {
-                if (!resp.ok) throw new Error(`Bad response ${resp.status}`);
-                return resp.json();
-              })
-              .then((json) => ({ index: i, json }))
-              .catch(() => ({ index: i, error: true }));
-
-            fetchPromises.push(p);
+            const p = fetch(legendUrl).then(response => {
+              if (response.ok) {
+                if (response.headers.get('Content-Type').includes('application/json')) {
+                  return response.json();
+                }
+                return response.text();
+              }
+              return Promise.reject(new Error(`Error fetching legend for layer ${layerId}, style ${style.styleName}`));
+            });
+            fetchPromises.push({
+              index: i,
+              legendPromise: p
+            });
           }
         }
 
-        const fetchResults = await Promise.all(fetchPromises);
+        const settledPromises = await Promise.allSettled(fetchPromises.map(p => p.legendPromise)); // waits for any .thens
+        // settledPromises kan vara kortare än layerStyles, det är ok, det enda som behövs är index i layerStyles
+        // för varje settledPromise
+        // settledPromises kommer att vara lika lång som fetchPromises (och ha samma ordning)
+        settledPromises.forEach((res, index) => {
+          const fetchPromise = fetchPromises[index];
+          const layerStyleIndex = fetchPromise.index;
 
-        // edit the layerStyles to set their isThemeStyle prop after successful getlegend reply
-        for (let j = 0; j < fetchResults.length; j += 1) {
-          const res = fetchResults[j];
-          if (!(res.error)) {
-            const Legend = res.json;
-            const firstLegend = Legend?.Legend?.[0];
-            const rules = firstLegend?.rules;
-            const rasterEntries = firstLegend?.rules?.[0]?.symbolizers?.[0]?.Raster?.colormap?.entries;
+          if (res.status === 'fulfilled') {
+            if (typeof res.value === 'object' && 'Legend' in res.value) {
+              const firstLegend = res.value.Legend?.[0];
+              const rules = firstLegend?.rules;
+              const rasterEntries = rules[0]?.symbolizers?.[0]?.Raster?.colormap?.entries;
 
-            const multipleRules = Array.isArray(rules) && rules.length > 1;
-            const multipleLegends = Array.isArray(Legend) && Legend.length > 1;
+              const multipleRules = Array.isArray(rules) && rules.length > 1;
+              const multipleLegends = Array.isArray(res.value.Legend) && res.value.Legend.length > 1;
 
-            layerStyles[res.index].isThemeStyle = multipleRules || multipleLegends || Boolean(rasterEntries);
-          } else {
-            console.warn(`Error fetching json legend for layer ${layerId} style ${layerStyles[res.index].styleName},
-              unable to determine whether theme style or not. Will assume not theme style.`);
+              layerStyles[layerStyleIndex].isThemeStyle = multipleRules || multipleLegends || Boolean(rasterEntries);
+            } else { // expected Geoserver http 200 xml error report
+              const parser = new DOMParser();
+              const parsedXml = parser.parseFromString(res.value, 'text/xml');
+              geoserverErrorXmls.push(parsedXml);
+            }
+          } else { // the fetch response was not ok so the allSettled individual promise rejected and here is the error reason
+            console.warn(res.reason.message);
           }
-        }
+        });
       }
 
       let legendUrls;
