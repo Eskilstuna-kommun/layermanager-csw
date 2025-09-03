@@ -14,7 +14,8 @@ const LayerList = function LayerList(options = {}) {
     noAbstractInfo,
     layersDefaultProps,
     layerSearch,
-    statConf
+    statConf,
+    preDefinedThemePropStyles
   } = options;
 
   let layerItems;
@@ -46,7 +47,8 @@ const LayerList = function LayerList(options = {}) {
       viewer,
       layersDefaultProps,
       noLegendIcon,
-      statConf
+      statConf,
+      preDefinedThemePropStyles
     }));
   const findMatch = (searchString, data) => {
     const isMatch = searchFields.reduce((result, field) => {

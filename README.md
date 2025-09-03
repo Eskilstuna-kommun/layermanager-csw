@@ -20,6 +20,7 @@ Option | Type | Description
 `url` | string | URL to CSW-service.
 `addLayerErrorMsg` | string | A custom error message informing the client of an error occurring due to the added layer.
 `statConf` | object | An object with an `ext` property for whether external facing map app and `url` property for what url to post to. Will post a json body to the specified url with a `layers` array (names) and the `ext` bool when a layer is added to the map. Optional.
+`preDefinedThemePropStyles` | An array of objects with a `layerName` prop (string) and a `styles` prop (array) with objects with a `name` prop as well as an `isThemeStyle` prop. Intended as a (hopefully temporary) manual intervention where Geoserver cannot create a json representation of a particular style legend. If one style of several is problematic in this fashion then only one style needs to be configured here. See example below.
 
 The plugin can be loaded like this in an html-file:
 ```html
@@ -86,7 +87,26 @@ The plugin can be loaded like this in an html-file:
                     statConf: {
 					    "url": "https://....layers/added/add",
 					    "ext": true,
-			        }
+			        },
+                    				preDefinedThemePropStyles: [
+					{
+						layerName: 'algae',
+						styles: [
+							{
+								name: 'cyanobacteria',
+								isThemeStyle: true
+							},
+							{
+								name: 'Pyrrophyta',
+								isThemeStyle: true
+							},
+							{
+								name: 'Kelp',
+								isThemeStyle: false
+							}
+						]
+					}
+				]
                 });
                 viewer.addComponent(layermanager);
 

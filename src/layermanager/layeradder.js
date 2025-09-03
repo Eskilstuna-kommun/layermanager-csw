@@ -15,7 +15,8 @@ const LayerAdder = function LayerAdder(options = {}) {
     abstract = '',
     layersDefaultProps,
     noLegendIcon,
-    statConf
+    statConf,
+    preDefinedThemePropStyles
   } = options;
 
   const layer = viewer.getLayer(layerId);
@@ -88,25 +89,74 @@ const LayerAdder = function LayerAdder(options = {}) {
       // not an ArcGIS Server WMS layer, assume Geoserver
         if (src[src.length - 1] === '?') srcUrl = src.substring(0, src.length - 1); // some extra '?' from request breaks the url
 
-        // For each style in stylesToCheck, constructs a URL to fetch the legend for that style. Uses fetch to make an HTTP request to the constructed URL.
-        // Parses the response as JSON and returns an object containing the style and the parsed json.
-        const legendFetches = layerStyles.map(style => {
-          let legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401`;
-          if (layerStyles.length > 1) {
-            legendUrl += `&style=${style.styleName}`;
-          }
-          return fetch(legendUrl);
-        });
-        const legendReplies = await Promise.all(legendFetches);
-        const legendJsons = await Promise.all(legendReplies.map(reply => reply.json()));
+        // check if there are predefinedThemePropStyles and if so try to edit the given layerStyles accordingly
+        const applyPredefinedThemePropStyles = () => {
+          if (!Array.isArray(preDefinedThemePropStyles) || preDefinedThemePropStyles.length === 0) return;
+          if (!Array.isArray(layerStyles) || layerStyles.length === 0) return;
 
-        // Iterates over each result in results and checks for the conditions: Multiple Rules, Colormap, and Multiple Legends.
-        legendJsons.forEach((Legend, index) => {
-          const value = Legend.Legend[0]?.rules[0]?.symbolizers[0]?.Raster?.colormap?.entries;
-          if ((Legend.Legend[0].rules.length > 1) || (Legend.length > 1) || value) {
-            layerStyles[index].isThemeStyle = true;
-          } else {
-            layerStyles[index].isThemeStyle = false;
+          const predefined = preDefinedThemePropStyles.find(({ layerName }) => layerName === layerId);
+          if (!predefined?.styles?.length) return;
+
+          const layerStyleByName = new Map(layerStyles.map(ls => [ls.styleName, ls]));
+
+          for (let i = 0; i < predefined.styles.length; i += 1) { // style of predefined.styles) {
+            const target = layerStyleByName.get(predefined.styles[i].name);
+            if (target) target.isThemeStyle = predefined.styles[i].isThemeStyle;
+          }
+        };
+
+        applyPredefinedThemePropStyles();
+
+        // Only fetch legends for styles that don't already have isThemeStyle
+        // save index to match layerStyles with fetchPromises
+        // can handle that only some styles of a layer have predefined isThemeStyle prop
+        const fetchPromises = [];
+        const geoserverErrorXmls = [];
+        for (let i = 0; i < layerStyles.length; i += 1) {
+          const style = layerStyles[i];
+          if (!('isThemeStyle' in style)) { // kan bara ha om fördefinierade
+            let legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401`;
+            if (layerStyles.length > 1) legendUrl += `&style=${style.styleName}`;
+
+            const p = fetch(legendUrl).then(response => {
+              if (response.ok) {
+                if (response.headers.get('Content-Type').includes('application/json')) {
+                  return response.json();
+                }
+                return response.text();
+              }
+              return Promise.reject(new Error(`Error fetching legend for layer ${layerId}, style ${style.styleName}`));
+            });
+            fetchPromises.push({
+              index: i,
+              legendPromise: p
+            });
+          }
+        }
+
+        const settledPromises = await Promise.allSettled(fetchPromises.map(p => p.legendPromise));
+
+        settledPromises.forEach((res, index) => {
+          const fetchPromise = fetchPromises[index];
+          const layerStyleIndex = fetchPromise.index;
+
+          if (res.status === 'fulfilled') {
+            if (typeof res.value === 'object' && 'Legend' in res.value) {
+              const firstLegend = res.value.Legend?.[0];
+              const rules = firstLegend?.rules;
+              const rasterEntries = rules[0]?.symbolizers?.[0]?.Raster?.colormap?.entries;
+
+              const multipleRules = Array.isArray(rules) && rules.length > 1;
+              const multipleLegends = Array.isArray(res.value.Legend) && res.value.Legend.length > 1;
+
+              layerStyles[layerStyleIndex].isThemeStyle = multipleRules || multipleLegends || Boolean(rasterEntries);
+            } else { // expected Geoserver http 200 xml error report
+              const parser = new DOMParser();
+              const parsedXml = parser.parseFromString(res.value, 'text/xml');
+              geoserverErrorXmls.push(parsedXml);
+            }
+          } else { // the fetch response was not ok so the allSettled individual promise rejected and here is the error reason
+            console.warn(res.reason.message);
           }
         });
       }
