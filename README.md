@@ -1,6 +1,6 @@
 # layermanager-csw
-Slightly altered https://github.com/origo-map/layermanager to fit a csw-backend
-Works as a plugin in the same way. Instructions to follow.
+Slightly altered https://github.com/origo-map/layermanager to fit a csw-backend and a Geoserver wms-server.
+
 
 #### Example usage of Layermanager as plugin
 
@@ -19,20 +19,20 @@ Option | Type | Description
 `noSearchResultText` | string | Custom text if there is no search result.
 `url` | string | URL to CSW-service.
 `addLayerErrorMsg` | string | A custom error message informing the client of an error occurring due to the added layer.
-`statConf` | object | An object with an `ext` property for whether external facing map app and `url` property for what url to post to. Will post a json body to the specified url with a `layers` array (names) and the `ext` bool when a layer is added to the map. Optional.
-`preDefinedThemePropStyles` | An array of objects with a `layerName` prop (string) and a `styles` prop (array) with objects with a `name` prop as well as an `isThemeStyle` prop. Intended as a (hopefully temporary) manual intervention where Geoserver cannot create a json representation of a particular style legend. If one style of several is problematic in this fashion then only one style needs to be configured here. See example below.
+`statConf` | object | An object with an `ext` property for whether external facing map app and `url` property for what url to post to. Will post a json body to the specified url with a `layers` array (names) and the `ext` bool when a layer is added to the map. Intent is statistics. Optional.
+`preDefinedThemePropStyles` | array | An array of objects with a `layerName` prop (string) and a `styles` prop (array) with objects with a `name` prop as well as an `isThemeStyle` prop. Intended as a (hopefully temporary) manual intervention where Geoserver cannot create a json representation of a particular style legend. If one style of several is problematic in this fashion then only one style needs to be configured here. See example below.
 
-The plugin can be loaded like this in an html-file:
+The plugin can be loaded like other Origo plugins in a map's index.html-file:
 ```html
         <link href="plugins/layermanager.css" rel="stylesheet">
         ...
         <script src="js/origo.min.js"></script>
         <script src="plugins/lm.min.js"></script>
         <script type="text/javascript">
-            var origo = Origo('config file.json');
+            const origo = Origo('config file.json');
             origo.on('load', function(viewer) {
 
-                var layermanager = Layermanager({
+                const layermanager = Layermanager({
                     types: [
                         "Addresses",
                         "Geology",
@@ -88,7 +88,7 @@ The plugin can be loaded like this in an html-file:
 					    "url": "https://....layers/added/add",
 					    "ext": true,
 			        },
-                    				preDefinedThemePropStyles: [
+					preDefinedThemePropStyles: [
 					{
 						layerName: 'algae',
 						styles: [
