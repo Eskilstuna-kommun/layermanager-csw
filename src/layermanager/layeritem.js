@@ -12,7 +12,8 @@ const layerItem = function layerItem(options = {}) {
     layersDefaultProps,
     noLegendIcon,
     statConf,
-    preDefinedThemePropStyles
+    preDefinedThemePropStyles,
+    urlApi
   } = options;
 
   const {
@@ -59,7 +60,8 @@ const layerItem = function layerItem(options = {}) {
         layersDefaultProps,
         noLegendIcon,
         statConf,
-        preDefinedThemePropStyles
+        preDefinedThemePropStyles,
+        urlApi
       });
       this.addComponent(layerAdder);
     },

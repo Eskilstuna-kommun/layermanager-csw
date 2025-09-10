@@ -16,7 +16,8 @@ const LayerAdder = function LayerAdder(options = {}) {
     layersDefaultProps,
     noLegendIcon,
     statConf,
-    preDefinedThemePropStyles
+    preDefinedThemePropStyles,
+    urlApi
   } = options;
 
   const layer = viewer.getLayer(layerId);
@@ -118,12 +119,32 @@ const LayerAdder = function LayerAdder(options = {}) {
             let legendUrl = `${src}service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&format=application/json&scale=401`;
             if (layerStyles.length > 1) legendUrl += `&style=${style.styleName}`;
 
-            const p = fetch(legendUrl).then(response => {
+            const p = fetch(legendUrl).then(async response => {
               if (response.ok) {
                 if (response.headers.get('Content-Type').includes('application/json')) {
                   return response.json();
                 }
-                return response.text();
+                const responseText = await response.text();
+                const logger = viewer.getControlByName('logger');
+                // Loggerwindow
+                logger.createToast({
+                  status: 'danger',
+                  title: 'Fel vid hämtning av teckenförklaring',
+                  message: `Kunde inte hämta teckenförklaring för lager "${title}". En felrapport skickas automatiskt till Geodataenheten för åtgärd`,
+                  duration: 20000
+                });
+                // Send error report with XML response
+                fetch(urlApi, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    lager_namn: `${layerId}`,
+                    stil_namn: `${style.styleName}`,
+                    beskrivning: `Kunde inte hämta legend-json för lager "${title}" med stilen "${style.styleName}"`,
+                    xml_response: responseText
+                  })
+                });
+                return responseText;
               }
               return Promise.reject(new Error(`Error fetching legend for layer ${layerId}, style ${style.styleName}`));
             });
@@ -157,6 +178,16 @@ const LayerAdder = function LayerAdder(options = {}) {
             }
           } else { // the fetch response was not ok so the allSettled individual promise rejected and here is the error reason
             console.warn(res.reason.message);
+            // Send error report
+            fetch(urlApi, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lager_namn: `${layerId}`,
+                beskrivning: 'The fetch response was not ok so the allSettled individual promise rejected and here is the error reason',
+                xml_response: res.reason.message
+              })
+            });
           }
         });
       }

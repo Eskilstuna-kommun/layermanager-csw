@@ -24,7 +24,8 @@ const Layermanager = function Layermanager(options = {}) {
     onlyAddableLayersBtn,
     addLayerErrorMsg,
     statConf,
-    preDefinedThemePropStyles
+    preDefinedThemePropStyles,
+    urlApi
   } = options;
 
   const cls = `${clsSettings} flex fade-in box center-center padding-y-small padding-left layer-manager overflow-hidden`.trim();
@@ -120,7 +121,8 @@ const Layermanager = function Layermanager(options = {}) {
         noLegendIcon,
         onlyAddableLayersBtn,
         statConf,
-        preDefinedThemePropStyles
+        preDefinedThemePropStyles,
+        urlApi
       });
       filterMenu = FilterMenu({ types });
       this.addComponent(closeButton);
