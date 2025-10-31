@@ -13,7 +13,17 @@ const layerItem = function layerItem(options = {}) {
     noLegendIcon,
     statConf,
     preDefinedThemePropStyles,
-    urlApi
+    urlErrorReport,
+    errorServerUrlStatus,
+    errorServerUrlDuration,
+    errorServerUrlTitle,
+    errorServerUrlMessage,
+    errorServerUrlDescription,
+    errorLegendStatus,
+    errorLegendDuration,
+    errorLegendTitle,
+    errorLegendMessage,
+    errorLegendDescription
   } = options;
 
   const {
@@ -61,7 +71,17 @@ const layerItem = function layerItem(options = {}) {
         noLegendIcon,
         statConf,
         preDefinedThemePropStyles,
-        urlApi
+        urlErrorReport,
+        errorServerUrlStatus,
+        errorServerUrlDuration,
+        errorServerUrlTitle,
+        errorServerUrlMessage,
+        errorServerUrlDescription,
+        errorLegendStatus,
+        errorLegendDuration,
+        errorLegendTitle,
+        errorLegendMessage,
+        errorLegendDescription
       });
       this.addComponent(layerAdder);
     },

@@ -16,7 +16,17 @@ const LayerList = function LayerList(options = {}) {
     layerSearch,
     statConf,
     preDefinedThemePropStyles,
-    urlApi
+    urlErrorReport,
+    errorServerUrlStatus,
+    errorServerUrlDuration,
+    errorServerUrlTitle,
+    errorServerUrlMessage,
+    errorServerUrlDescription,
+    errorLegendStatus,
+    errorLegendDuration,
+    errorLegendTitle,
+    errorLegendMessage,
+    errorLegendDescription
   } = options;
 
   let layerItems;
@@ -50,7 +60,17 @@ const LayerList = function LayerList(options = {}) {
       noLegendIcon,
       statConf,
       preDefinedThemePropStyles,
-      urlApi
+      urlErrorReport,
+      errorServerUrlStatus,
+      errorServerUrlDuration,
+      errorServerUrlTitle,
+      errorServerUrlMessage,
+      errorServerUrlDescription,
+      errorLegendStatus,
+      errorLegendDuration,
+      errorLegendTitle,
+      errorLegendMessage,
+      errorLegendDescription
     }));
   const findMatch = (searchString, data) => {
     const isMatch = searchFields.reduce((result, field) => {

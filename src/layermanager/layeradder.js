@@ -17,7 +17,17 @@ const LayerAdder = function LayerAdder(options = {}) {
     noLegendIcon,
     statConf,
     preDefinedThemePropStyles,
-    urlApi
+    urlErrorReport,
+    errorServerUrlStatus,
+    errorServerUrlDuration,
+    errorServerUrlTitle,
+    errorServerUrlMessage,
+    errorServerUrlDescription,
+    errorLegendStatus,
+    errorLegendDuration,
+    errorLegendTitle,
+    errorLegendMessage,
+    errorLegendDescription
   } = options;
 
   const layer = viewer.getLayer(layerId);
@@ -158,32 +168,40 @@ const LayerAdder = function LayerAdder(options = {}) {
               const logger = viewer.getControlByName('logger');
               // Loggerwindow
               logger.createToast({
-                status: 'danger',
-                title: 'Fel vid hämtning av teckenförklaring',
-                message: `Kunde inte hämta teckenförklaring för lager "${title}". En felrapport skickas automatiskt till Geodataenheten för åtgärd`,
-                duration: 20000
+                status: errorLegendStatus,
+                title: errorLegendTitle,
+                message: errorLegendMessage,
+                duration: errorLegendDuration
               });
               // Send error report with XML response
-              fetch(urlApi, {
+              fetch(urlErrorReport, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   lager_namn: `${layerId}`,
                   stil_namn: `${layerStyles[layerStyleIndex].styleName}`,
-                  beskrivning: `Kunde inte hämta legend-json för lager "${title}" med stilen "${layerStyles[layerStyleIndex].styleName}"`,
+                  beskrivning: errorLegendDescription,
                   xml_response: res.value
                 })
               });
             }
           } else { // the fetch response was not ok so the allSettled individual promise rejected and here is the error reason
             console.warn(res.reason.message);
+            const logger = viewer.getControlByName('logger');
+            // Loggerwindow
+            logger.createToast({
+              status: errorServerUrlStatus,
+              title: errorServerUrlTitle,
+              message: errorServerUrlMessage,
+              duration: errorServerUrlDuration
+            });
             // Send error report
-            fetch(urlApi, {
+            fetch(urlErrorReport, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 lager_namn: `${layerId}`,
-                beskrivning: 'The fetch response was not ok so the allSettled individual promise rejected and here is the error reason',
+                beskrivning: errorServerUrlDescription,
                 xml_response: res.reason.message
               })
             });
