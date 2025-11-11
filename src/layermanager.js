@@ -35,7 +35,12 @@ const Layermanager = function Layermanager(options = {}) {
     errorLegendDuration,
     errorLegendTitle,
     errorLegendMessage,
-    errorLegendDescription
+    errorLegendDescription,
+    errorLayerNotFoundDescription,
+    errorLayerNotFoundDuration,
+    errorLayerNotFoundMessage,
+    errorLayerNotFoundStatus,
+    errorLayerNotFoundTitle
   } = options;
 
   const cls = `${clsSettings} flex fade-in box center-center padding-y-small padding-left layer-manager overflow-hidden`.trim();
@@ -142,7 +147,12 @@ const Layermanager = function Layermanager(options = {}) {
         errorLegendDuration,
         errorLegendTitle,
         errorLegendMessage,
-        errorLegendDescription
+        errorLegendDescription,
+        errorLayerNotFoundDescription,
+        errorLayerNotFoundDuration,
+        errorLayerNotFoundMessage,
+        errorLayerNotFoundStatus,
+        errorLayerNotFoundTitle
       });
       filterMenu = FilterMenu({ types });
       this.addComponent(closeButton);

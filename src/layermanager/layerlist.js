@@ -26,7 +26,12 @@ const LayerList = function LayerList(options = {}) {
     errorLegendDuration,
     errorLegendTitle,
     errorLegendMessage,
-    errorLegendDescription
+    errorLegendDescription,
+    errorLayerNotFoundDescription,
+    errorLayerNotFoundDuration,
+    errorLayerNotFoundMessage,
+    errorLayerNotFoundStatus,
+    errorLayerNotFoundTitle
   } = options;
 
   let layerItems;
@@ -70,7 +75,12 @@ const LayerList = function LayerList(options = {}) {
       errorLegendDuration,
       errorLegendTitle,
       errorLegendMessage,
-      errorLegendDescription
+      errorLegendDescription,
+      errorLayerNotFoundDescription,
+      errorLayerNotFoundDuration,
+      errorLayerNotFoundMessage,
+      errorLayerNotFoundStatus,
+      errorLayerNotFoundTitle
     }));
   const findMatch = (searchString, data) => {
     const isMatch = searchFields.reduce((result, field) => {

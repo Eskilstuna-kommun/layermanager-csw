@@ -23,7 +23,12 @@ const layerItem = function layerItem(options = {}) {
     errorLegendDuration,
     errorLegendTitle,
     errorLegendMessage,
-    errorLegendDescription
+    errorLegendDescription,
+    errorLayerNotFoundDescription,
+    errorLayerNotFoundDuration,
+    errorLayerNotFoundMessage,
+    errorLayerNotFoundStatus,
+    errorLayerNotFoundTitle
   } = options;
 
   const {
@@ -81,7 +86,12 @@ const layerItem = function layerItem(options = {}) {
         errorLegendDuration,
         errorLegendTitle,
         errorLegendMessage,
-        errorLegendDescription
+        errorLegendDescription,
+        errorLayerNotFoundDescription,
+        errorLayerNotFoundDuration,
+        errorLayerNotFoundMessage,
+        errorLayerNotFoundStatus,
+        errorLayerNotFoundTitle
       });
       this.addComponent(layerAdder);
     },

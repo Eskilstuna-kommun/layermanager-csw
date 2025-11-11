@@ -27,7 +27,12 @@ const LayerAdder = function LayerAdder(options = {}) {
     errorLegendDuration,
     errorLegendTitle,
     errorLegendMessage,
-    errorLegendDescription
+    errorLegendDescription,
+    errorLayerNotFoundDescription,
+    errorLayerNotFoundDuration,
+    errorLayerNotFoundMessage,
+    errorLayerNotFoundStatus,
+    errorLayerNotFoundTitle
   } = options;
 
   const layer = viewer.getLayer(layerId);
@@ -80,6 +85,7 @@ const LayerAdder = function LayerAdder(options = {}) {
       let legendJson = false;
       let styleProperty;
       let theme = false;
+      let geoserverLayerNotFound = false;
       // assume ArcGIS WMS based on URL. 'OR' as webadaptors need not be called 'arcgis'
       if (srcUrl.includes('arcgis') || srcUrl.includes('WMSServer')) {
         let jsonUrl = srcUrl.replace(/\/arcgis(\/rest)?\/services\/([^/]+\/[^/]+)\/MapServer\/WMSServer/, '/arcgis/rest/services/$2/MapServer');
@@ -165,14 +171,19 @@ const LayerAdder = function LayerAdder(options = {}) {
               const parser = new DOMParser();
               const parsedXml = parser.parseFromString(res.value, 'text/xml');
               geoserverErrorXmls.push(parsedXml);
+              const exceptionElem = parsedXml.getElementsByTagName('ServiceException');
+              const exceptionString = exceptionElem[0].textContent.trim();
+              if (exceptionString.endsWith('layer does not exist.')) geoserverLayerNotFound = true;
               const logger = viewer.getControlByName('logger');
               // Loggerwindow
-              logger.createToast({
-                status: errorLegendStatus,
-                title: errorLegendTitle,
-                message: errorLegendMessage,
-                duration: errorLegendDuration
-              });
+              const loggerConfObj = {
+                status: geoserverLayerNotFound ? errorLayerNotFoundStatus : errorLegendStatus,
+                title: geoserverLayerNotFound ? errorLayerNotFoundTitle : errorLegendTitle,
+                message: geoserverLayerNotFound ? errorLayerNotFoundMessage : errorLegendMessage,
+                duration: geoserverLayerNotFound ? errorLayerNotFoundDuration : errorLegendDuration
+              };
+
+              logger.createToast(loggerConfObj);
               // Send error report with XML response
               fetch(urlErrorReport, {
                 method: 'POST',
@@ -180,7 +191,7 @@ const LayerAdder = function LayerAdder(options = {}) {
                 body: JSON.stringify({
                   lager_namn: `${layerId}`,
                   stil_namn: `${layerStyles[layerStyleIndex].styleName}`,
-                  beskrivning: errorLegendDescription,
+                  beskrivning: geoserverLayerNotFound ? errorLayerNotFoundDescription : errorLegendDescription,
                   xml_response: res.value
                 })
               });
@@ -209,85 +220,88 @@ const LayerAdder = function LayerAdder(options = {}) {
         });
       }
 
-      let legendUrls;
+      if (!geoserverLayerNotFound) {
+        let legendUrls;
 
-      if (layerStyles.length > 0) {
-        legendUrls = layerStyles.map((style) => {
-          const vendorParam = !style.isThemeStyle ? '&legend_options=dpi:300' : '';
-          let legendUrl = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}`;
-          if (layerStyles.length > 1) {
-            legendUrl += `&style=${style.styleName}`;
-          }
-          return legendUrl;
-        });
-      }
+        if (layerStyles.length > 0) {
+          legendUrls = layerStyles.map((style) => {
+            const vendorParam = !style.isThemeStyle ? '&legend_options=dpi:300' : '';
+            let legendUrl = `${srcUrl}?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=${layerId}&FORMAT=image/png&scale=401${vendorParam}`;
+            if (layerStyles.length > 1) {
+              legendUrl += `&style=${style.styleName}`;
+            }
+            return legendUrl;
+          });
+        }
 
-      let newLayer = {
-        name: layerId,
-        title,
-        style: legendUrls[0],
-        removable: true,
-        source: srcUrl,
-        abstract: abstractText
-      };
-
-      newLayer = Object.assign(newLayer, layersDefaultProps);
-
-      if (currentLayer.stylePicker) {
-        newLayer.stylePicker = [];
-        layerStyles.forEach((style, index) => {
-          // const altTitleName = altTitle[index] || style; // Use the corresponding title or fallback to the style name
-          const styleObject = {
-            title: style.styleTitle,
-            style: style.styleName,
-            hasThemeLegend: style.isThemeStyle
-          };
-          if (index === 0) {
-            styleObject.initialStyle = true;
-          }
-          if (style.isThemeStyle === false) {
-            styleObject.legendParams = {
-              legend_options: 'dpi:300'
-            };
-          }
-          newLayer.stylePicker.push(styleObject);
-        });
-      } else {
-        newLayer.hasThemeLegend = layerStyles[0].isThemeStyle;
-      }
-
-      const srcObject = {};
-      srcObject[`${srcUrl}`] = { url: srcUrl };
-      addSources(srcObject);
-
-      if (legendUrls && !currentLayer.stylePicker) {
-        legendUrls.forEach((legendUrl, index) => {
-          const style = [[
-            {
-              icon: { src: legendUrl },
-              extendedLegend: layerStyles[index].isThemeStyle
-            }]];
-          viewer.addStyle(legendUrl, style);
-        });
-      }
-
-      // newLayer.styleName = legendUrls[0];
-      // newLayer.style = legendUrls[0];
-      viewer.addLayer(newLayer);
-      if (statConf) {
-        const postOptions = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            layers: [newLayer.name],
-            ext: statConf.ext
-          })
+        let newLayer = {
+          name: layerId,
+          title,
+          style: legendUrls[0],
+          removable: true,
+          source: srcUrl,
+          abstract: abstractText
         };
-        fetch(statConf.url, postOptions);
+
+        newLayer = Object.assign(newLayer, layersDefaultProps);
+
+        if (currentLayer.stylePicker) {
+          newLayer.stylePicker = [];
+          layerStyles.forEach((style, index) => {
+          // const altTitleName = altTitle[index] || style; // Use the corresponding title or fallback to the style name
+            const styleObject = {
+              title: style.styleTitle,
+              style: style.styleName,
+              hasThemeLegend: style.isThemeStyle
+            };
+            if (index === 0) {
+              styleObject.initialStyle = true;
+            }
+            if (style.isThemeStyle === false) {
+              styleObject.legendParams = {
+                legend_options: 'dpi:300'
+              };
+            }
+            newLayer.stylePicker.push(styleObject);
+          });
+        } else {
+          newLayer.hasThemeLegend = layerStyles[0].isThemeStyle;
+        }
+
+        const srcObject = {};
+        srcObject[`${srcUrl}`] = { url: srcUrl };
+        addSources(srcObject);
+
+        if (legendUrls && !currentLayer.stylePicker) {
+          legendUrls.forEach((legendUrl, index) => {
+            const style = [[
+              {
+                icon: { src: legendUrl },
+                extendedLegend: layerStyles[index].isThemeStyle
+              }]];
+            viewer.addStyle(legendUrl, style);
+          });
+        }
+
+        // newLayer.styleName = legendUrls[0];
+        // newLayer.style = legendUrls[0];
+        viewer.addLayer(newLayer);
+
+        if (statConf) {
+          const postOptions = {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              layers: [newLayer.name],
+              ext: statConf.ext
+            })
+          };
+          fetch(statConf.url, postOptions);
+        }
+        this.setState('inactive');
       }
-      this.setState('inactive');
     }
   };
 
