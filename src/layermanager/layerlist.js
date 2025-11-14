@@ -15,7 +15,23 @@ const LayerList = function LayerList(options = {}) {
     layersDefaultProps,
     layerSearch,
     statConf,
-    preDefinedThemePropStyles
+    preDefinedThemePropStyles,
+    urlErrorReport,
+    errorServerUrlStatus,
+    errorServerUrlDuration,
+    errorServerUrlTitle,
+    errorServerUrlMessage,
+    errorServerUrlDescription,
+    errorLegendStatus,
+    errorLegendDuration,
+    errorLegendTitle,
+    errorLegendMessage,
+    errorLegendDescription,
+    errorLayerNotFoundDescription,
+    errorLayerNotFoundDuration,
+    errorLayerNotFoundMessage,
+    errorLayerNotFoundStatus,
+    errorLayerNotFoundTitle
   } = options;
 
   let layerItems;
@@ -48,7 +64,23 @@ const LayerList = function LayerList(options = {}) {
       layersDefaultProps,
       noLegendIcon,
       statConf,
-      preDefinedThemePropStyles
+      preDefinedThemePropStyles,
+      urlErrorReport,
+      errorServerUrlStatus,
+      errorServerUrlDuration,
+      errorServerUrlTitle,
+      errorServerUrlMessage,
+      errorServerUrlDescription,
+      errorLegendStatus,
+      errorLegendDuration,
+      errorLegendTitle,
+      errorLegendMessage,
+      errorLegendDescription,
+      errorLayerNotFoundDescription,
+      errorLayerNotFoundDuration,
+      errorLayerNotFoundMessage,
+      errorLayerNotFoundStatus,
+      errorLayerNotFoundTitle
     }));
   const findMatch = (searchString, data) => {
     const isMatch = searchFields.reduce((result, field) => {

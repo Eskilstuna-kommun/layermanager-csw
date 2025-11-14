@@ -33,6 +33,17 @@ The plugin can be loaded like other Origo plugins in a map's index.html-file:
             origo.on('load', function(viewer) {
 
                 const layermanager = Layermanager({
+                    urlErrorReport: "https://ikarta.eskilstuna.se/ek-lm-api",
+                    errorServerUrlStatus: 'danger',
+                    errorServerUrlDuration: 10000,
+                    errorServerUrlTitle: 'Problem med server-url',
+                    errorServerUrlMessage: `En felrapport skickas till Geodataenheten för åtgärd`,
+                    errorServerUrlDescription: `Problem med server-url`,
+                    errorLegendStatus: 'danger',
+                    errorLegendDuration: 20000,
+                    errorLegendTitle: 'Fel vid hämtning av teckenförklaring',
+                    errorLegendMessage: `Kunde inte hämta teckenförklaring. En felrapport skickas till Geodataenheten för åtgärd`,
+                    errorLegendDescription: `Kunde inte hämta teckenförklaring`,
                     types: [
                         "Addresses",
                         "Geology",

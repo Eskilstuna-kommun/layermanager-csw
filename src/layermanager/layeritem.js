@@ -12,7 +12,23 @@ const layerItem = function layerItem(options = {}) {
     layersDefaultProps,
     noLegendIcon,
     statConf,
-    preDefinedThemePropStyles
+    preDefinedThemePropStyles,
+    urlErrorReport,
+    errorServerUrlStatus,
+    errorServerUrlDuration,
+    errorServerUrlTitle,
+    errorServerUrlMessage,
+    errorServerUrlDescription,
+    errorLegendStatus,
+    errorLegendDuration,
+    errorLegendTitle,
+    errorLegendMessage,
+    errorLegendDescription,
+    errorLayerNotFoundDescription,
+    errorLayerNotFoundDuration,
+    errorLayerNotFoundMessage,
+    errorLayerNotFoundStatus,
+    errorLayerNotFoundTitle
   } = options;
 
   const {
@@ -59,7 +75,23 @@ const layerItem = function layerItem(options = {}) {
         layersDefaultProps,
         noLegendIcon,
         statConf,
-        preDefinedThemePropStyles
+        preDefinedThemePropStyles,
+        urlErrorReport,
+        errorServerUrlStatus,
+        errorServerUrlDuration,
+        errorServerUrlTitle,
+        errorServerUrlMessage,
+        errorServerUrlDescription,
+        errorLegendStatus,
+        errorLegendDuration,
+        errorLegendTitle,
+        errorLegendMessage,
+        errorLegendDescription,
+        errorLayerNotFoundDescription,
+        errorLayerNotFoundDuration,
+        errorLayerNotFoundMessage,
+        errorLayerNotFoundStatus,
+        errorLayerNotFoundTitle
       });
       this.addComponent(layerAdder);
     },

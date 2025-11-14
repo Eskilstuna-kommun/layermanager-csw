@@ -24,7 +24,23 @@ const Layermanager = function Layermanager(options = {}) {
     onlyAddableLayersBtn,
     addLayerErrorMsg,
     statConf,
-    preDefinedThemePropStyles
+    preDefinedThemePropStyles,
+    urlErrorReport,
+    errorServerUrlStatus,
+    errorServerUrlDuration,
+    errorServerUrlTitle,
+    errorServerUrlMessage,
+    errorServerUrlDescription,
+    errorLegendStatus,
+    errorLegendDuration,
+    errorLegendTitle,
+    errorLegendMessage,
+    errorLegendDescription,
+    errorLayerNotFoundDescription,
+    errorLayerNotFoundDuration,
+    errorLayerNotFoundMessage,
+    errorLayerNotFoundStatus,
+    errorLayerNotFoundTitle
   } = options;
 
   const cls = `${clsSettings} flex fade-in box center-center padding-y-small padding-left layer-manager overflow-hidden`.trim();
@@ -120,7 +136,23 @@ const Layermanager = function Layermanager(options = {}) {
         noLegendIcon,
         onlyAddableLayersBtn,
         statConf,
-        preDefinedThemePropStyles
+        preDefinedThemePropStyles,
+        urlErrorReport,
+        errorServerUrlStatus,
+        errorServerUrlDuration,
+        errorServerUrlTitle,
+        errorServerUrlMessage,
+        errorServerUrlDescription,
+        errorLegendStatus,
+        errorLegendDuration,
+        errorLegendTitle,
+        errorLegendMessage,
+        errorLegendDescription,
+        errorLayerNotFoundDescription,
+        errorLayerNotFoundDuration,
+        errorLayerNotFoundMessage,
+        errorLayerNotFoundStatus,
+        errorLayerNotFoundTitle
       });
       filterMenu = FilterMenu({ types });
       this.addComponent(closeButton);
