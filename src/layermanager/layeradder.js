@@ -152,6 +152,7 @@ const LayerAdder = function LayerAdder(options = {}) {
         }
 
         const settledPromises = await Promise.allSettled(fetchPromises.map(p => p.legendPromise));
+        let numberOfLegendErrors = 0;
 
         settledPromises.forEach((res, index) => {
           const fetchPromise = fetchPromises[index];
@@ -168,6 +169,7 @@ const LayerAdder = function LayerAdder(options = {}) {
 
               layerStyles[layerStyleIndex].isThemeStyle = multipleRules || multipleLegends || Boolean(rasterEntries);
             } else { // expected Geoserver http 200 xml error report
+              numberOfLegendErrors += 1;
               const parser = new DOMParser();
               const parsedXml = parser.parseFromString(res.value, 'text/xml');
               geoserverErrorXmls.push(parsedXml);
@@ -182,8 +184,10 @@ const LayerAdder = function LayerAdder(options = {}) {
                 message: geoserverLayerNotFound ? errorLayerNotFoundMessage : errorLegendMessage,
                 duration: geoserverLayerNotFound ? errorLayerNotFoundDuration : errorLegendDuration
               };
+              if (numberOfLegendErrors === 1) {
+                logger.createToast(loggerConfObj);
+              }
 
-              logger.createToast(loggerConfObj);
               // Send error report with XML response
               fetch(urlErrorReport, {
                 method: 'POST',
